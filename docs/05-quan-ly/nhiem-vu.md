@@ -51,12 +51,12 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | --- | --- | --- | --- | --- |
 | T-101 | Khởi tạo git repo, `.gitignore`, `.gitattributes` cố định line ending | Must | Xong | Chủ dự án đã `git init` và push lần đầu lên `main`; quy ước nhánh ở D-012 |
 | T-102 | Khung backend Spring Boot (Web, Security, Data JPA, Validation, Flyway), profile `api` và `worker` | Must | Chưa làm | Khung tối thiểu đã có (Boot 4.1.2, `com.dev.moment`, health, bảo mật tạm, Dockerfile, 3 test pass); profile `api`/`worker` làm cùng worker (T-132) |
-| T-103 | Khung frontend Next.js `output: 'export'`, Tailwind, shadcn/ui, i18n vi/en | Must | Chưa làm | ADR 0001, quy tắc 1 và 7. Đã có Next.js 16 export, Tailwind, `src/i18n/` tối thiểu; còn shadcn/ui, chọn ngôn ngữ, cấu trúc thư mục |
+| T-103 | Khung frontend Next.js `output: 'export'`, Tailwind, shadcn/ui, i18n vi/en | Must | Xong | shadcn/ui, `I18nProvider` (ngôn ngữ trình duyệt, ngôn ngữ tài khoản), client API chung, `PageGate` |
 | T-104 | Docker Compose cho dev: PostgreSQL 16, RustFS, Mailpit | Must | Xong | `compose.yaml`; đã chạy: 4 service lên, bucket riêng tư, ghi/đọc S3 được (D-008, D-009, D-010) |
 | T-105 | Migration `V1__init.sql` theo thiết kế database | Must | Xong | 11 bảng; test kiểm tra bảng, unique email, định dạng username |
 | T-106 | Hạ tầng chung backend: lỗi RFC 9457, `X-Request-Id`, `Accept-Language`, CORS theo danh sách origin | Must | Xong | Gói `common`: `ErrorCode`, `GlobalExceptionHandler`, `RequestIdFilter`, `Clock`, `GraphemeCounter`, `@MaxGraphemes`; 18 test pass |
-| T-107 | Lớp interface nền tảng ở frontend (`CameraService`, `NotificationService`, `ShareService`, `TokenStore`, `GoogleSignIn`), bản web | Must | Chưa làm | Kế hoạch, quy tắc 2 |
-| T-108 | Thiết lập kiểm thử: unit, integration với Testcontainers (PostgreSQL, RustFS), công cụ E2E | Must | Chưa làm | Testcontainers PostgreSQL đã chạy; RustFS thêm khi có code storage; công cụ E2E chưa chọn |
+| T-107 | Lớp interface nền tảng ở frontend (`CameraService`, `NotificationService`, `ShareService`, `TokenStore`, `GoogleSignIn`), bản web | Must | Xong | `src/platform/`; `NotificationService` bản web chưa hỗ trợ (MVP không dùng) |
+| T-108 | Thiết lập kiểm thử: unit, integration với Testcontainers (PostgreSQL, RustFS), công cụ E2E | Must | Đang làm | Backend Testcontainers PostgreSQL, frontend Vitest + Testing Library đã chạy trong CI; RustFS thêm khi có code storage; công cụ E2E chưa chọn |
 | T-109 | CI/CD GitHub Actions: test backend, build frontend, đẩy image backend lên Docker Hub | Must | Xong | D-011; job backend và frontend xanh trên GitHub ở lần push đầu (chủ dự án xác nhận); job đẩy image tạm tắt (D-013) |
 | T-110 | Bật lại job đẩy image backend lên Docker Hub khi release v1 | Must | Chờ | D-013; chờ có chức năng ổn định. Cần biến `DOCKERHUB_USERNAME`, secret `DOCKERHUB_TOKEN` |
 
@@ -64,13 +64,13 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-111 | Đăng ký email + mật khẩu, xác thực email | Must | Xong | US-01, US-02, BR-01 |
+| T-111 | Đăng ký email + mật khẩu, xác thực email (API và giao diện) | Must | Xong | US-01, US-02, BR-01 |
 | T-112 | Đăng nhập email + mật khẩu, khóa 15 phút sau 5 lần sai | Must | Xong | US-03 |
 | T-113 | JWT access + refresh token xoay vòng theo family, cookie (web) / body (native), đăng xuất | Must | Xong | US-08, API mục 2 |
 | T-114 | Đăng nhập Google bằng ID token | Must | Xong | US-04, BR-03, D-023; trường hợp email chưa xác thực chờ xác nhận Q-022 |
 | T-115 | Quên và đặt lại mật khẩu, thu hồi mọi phiên | Must | Xong | US-05 |
-| T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Đang làm | US-06, BR-02, D-025. API username, tên hiển thị, `PROFILE_INCOMPLETE` xong; ảnh đại diện làm sau khi có object storage (T-131) |
-| T-117 | Đổi ngôn ngữ giao diện, lưu vào tài khoản | Must | Đang làm | US-07, D-023. API lưu `locale` xong; còn giao diện |
+| T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Đang làm | US-06, BR-02, D-025. Username, tên hiển thị (API và giao diện), `PROFILE_INCOMPLETE` xong; ảnh đại diện làm sau khi có object storage (T-131) |
+| T-117 | Đổi ngôn ngữ giao diện, lưu vào tài khoản | Must | Xong | US-07, D-023; trang cài đặt |
 | T-118 | Xóa tài khoản và toàn bộ dữ liệu | Should | Chưa làm | US-09, D-026 |
 | T-119 | Giới hạn tần suất (Bucket4j, trong bộ nhớ) | Must | Xong | API mục 6; giới hạn theo IP dùng địa chỉ kết nối, khi có reverse proxy cần cấu hình forwarded header (T-164) |
 
