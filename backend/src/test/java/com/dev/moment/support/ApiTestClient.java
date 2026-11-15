@@ -17,7 +17,13 @@ import tools.jackson.databind.json.JsonMapper;
 /** Thao tác API hay dùng trong test: đăng ký, xác thực, đăng nhập, đọc JSON. */
 public class ApiTestClient {
 
-    public static final String PASSWORD = "matkhau-an-toan-1";
+    // Mật khẩu test sinh lúc chạy để không có chuỗi giống mật khẩu nằm cứng trong repo.
+    public static final String PASSWORD = newPassword();
+
+    /** Mật khẩu hợp lệ theo BR-01 (đủ 8 ký tự, dưới 72 byte), khác nhau mỗi lần gọi. */
+    public static String newPassword() {
+        return "pw-" + UUID.randomUUID();
+    }
 
     private final MockMvc mockMvc;
     private final JsonMapper jsonMapper;

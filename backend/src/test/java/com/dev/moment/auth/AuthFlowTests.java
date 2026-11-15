@@ -42,6 +42,8 @@ class AuthFlowTests {
     private JwtDecoder jwtDecoder;
 
     private ApiTestClient api;
+    private final String wrongPassword = ApiTestClient.newPassword();
+    private final String newPassword = ApiTestClient.newPassword();
 
     @BeforeEach
     void setUp() {
@@ -184,12 +186,12 @@ class AuthFlowTests {
         String email = uniqueEmail();
         api.registerAndVerify(email);
 
-        JsonNode wrongPassword = api.read(api.login(email, "sai-mat-khau-123", null));
-        JsonNode unknownEmail = api.read(api.login(uniqueEmail(), "sai-mat-khau-123", null));
+        JsonNode wrongPasswordError = api.read(api.login(email, wrongPassword, null));
+        JsonNode unknownEmailError = api.read(api.login(uniqueEmail(), wrongPassword, null));
 
-        assertThat(wrongPassword.get("code").asString()).isEqualTo("INVALID_CREDENTIALS");
-        assertThat(unknownEmail.get("code").asString()).isEqualTo("INVALID_CREDENTIALS");
-        assertThat(wrongPassword.get("detail")).isEqualTo(unknownEmail.get("detail"));
+        assertThat(wrongPasswordError.get("code").asString()).isEqualTo("INVALID_CREDENTIALS");
+        assertThat(unknownEmailError.get("code").asString()).isEqualTo("INVALID_CREDENTIALS");
+        assertThat(wrongPasswordError.get("detail")).isEqualTo(unknownEmailError.get("detail"));
     }
 
     @Test
@@ -197,7 +199,7 @@ class AuthFlowTests {
         String email = uniqueEmail();
         api.registerAndVerify(email);
         for (int i = 0; i < 5; i++) {
-            assertThat(api.login(email, "sai-mat-khau-123", null).getStatus()).isEqualTo(401);
+            assertThat(api.login(email, wrongPassword, null).getStatus()).isEqualTo(401);
         }
 
         MockHttpServletResponse locked = api.login(email, PASSWORD, null);
@@ -327,12 +329,12 @@ class AuthFlowTests {
         String token = emails.latestToken(email, "/reset-password").orElseThrow();
 
         MockHttpServletResponse reset = postJson("/api/v1/auth/reset-password",
-                Map.of("token", token, "newPassword", "mat-khau-moi-456"));
+                Map.of("token", token, "newPassword", newPassword));
 
         assertThat(reset.getStatus()).isEqualTo(204);
         assertThat(refreshWeb(oldSession).getStatus()).isEqualTo(401);
         assertThat(api.login(email, PASSWORD, null).getStatus()).isEqualTo(401);
-        assertThat(api.login(email, "mat-khau-moi-456", null).getStatus()).isEqualTo(200);
+        assertThat(api.login(email, newPassword, null).getStatus()).isEqualTo(200);
     }
 
     @Test
@@ -344,7 +346,7 @@ class AuthFlowTests {
         clock.advance(Duration.ofHours(1).plusSeconds(1));
 
         MockHttpServletResponse reset = postJson("/api/v1/auth/reset-password",
-                Map.of("token", token, "newPassword", "mat-khau-moi-456"));
+                Map.of("token", token, "newPassword", newPassword));
 
         assertThat(api.read(reset).get("code").asString()).isEqualTo("TOKEN_EXPIRED");
     }
@@ -358,7 +360,7 @@ class AuthFlowTests {
         String token = emails.latestToken(email, "/reset-password").orElseThrow();
 
         MockHttpServletResponse reset = postJson("/api/v1/auth/reset-password",
-                Map.of("token", token, "newPassword", "mat-khau-moi-456"));
+                Map.of("token", token, "newPassword", newPassword));
 
         assertThat(reset.getStatus()).isEqualTo(403);
         assertThat(api.read(reset).get("code").asString()).isEqualTo("DEMO_ACCOUNT_READONLY");
