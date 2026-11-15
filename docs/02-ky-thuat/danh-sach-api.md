@@ -89,13 +89,14 @@ Cột "Xác thực": **Không** = công khai, **Có** = cần access token.
 
 Chi tiết:
 
-- `POST /auth/register` — body `{ "email", "password", "locale" }` → `201`. Lỗi: `VALIDATION_FAILED`, `EMAIL_TAKEN` (409).
+- `POST /auth/register` — body `{ "email", "password", "locale"? }` → `201`, không có body. `password` tối thiểu 8 ký tự hiển thị và tối đa 72 byte UTF-8 (giới hạn của BCrypt); `locale` thiếu thì dùng `vi`. Lỗi: `VALIDATION_FAILED`, `EMAIL_TAKEN` (409).
 - `POST /auth/verify-email` — body `{ "token" }` → `204`. Lỗi: `TOKEN_INVALID` (400), `TOKEN_EXPIRED` (400).
 - `POST /auth/resend-verification`, `POST /auth/forgot-password` — body `{ "email" }` → luôn `202`, kể cả email không tồn tại (không lộ tài khoản).
 - `POST /auth/login` — body `{ "email", "password" }` → `200` như mẫu ở mục 2. Lỗi: `INVALID_CREDENTIALS` (401), `EMAIL_NOT_VERIFIED` (403), `LOGIN_LOCKED` (429, có header `Retry-After`).
-- `POST /auth/google` — body `{ "idToken", "locale"? }` → `200` như đăng nhập, thêm `"isNewUser": true|false`. `locale` (`vi` hoặc `en`) chỉ dùng khi tạo tài khoản mới; thiếu thì dùng `vi` (D-023). Server kiểm tra chữ ký, `aud` bằng client id của dự án, `iss`, hạn dùng. Lỗi: `GOOGLE_TOKEN_INVALID` (401).
+- `POST /auth/google` — body `{ "idToken", "locale"? }` → `200` như đăng nhập, thêm `"isNewUser": true|false`. `locale` (`vi` hoặc `en`) chỉ dùng khi tạo tài khoản mới; thiếu thì dùng `vi` (D-023). Google báo `email_verified = false` → `GOOGLE_TOKEN_INVALID`. Email trùng một tài khoản email chưa xác thực → tài khoản đó được xác thực và bỏ mật khẩu cũ (Q-022, đang chờ chốt). Server kiểm tra chữ ký, `aud` bằng client id của dự án, `iss`, hạn dùng. Lỗi: `GOOGLE_TOKEN_INVALID` (401).
 - `POST /auth/refresh` — web: không body, đọc cookie; native: body `{ "refreshToken" }` → `200 { accessToken, expiresIn }` (+ refresh token mới theo mục 2). Lỗi: `UNAUTHENTICATED`, `TOKEN_REUSED` (401).
-- `POST /auth/reset-password` — body `{ "token", "newPassword" }` → `204`. Lỗi: `TOKEN_INVALID`, `TOKEN_EXPIRED`, `VALIDATION_FAILED`, `DEMO_ACCOUNT_READONLY` (403).
+- `POST /auth/logout` — web đọc cookie, native gửi body `{ "refreshToken" }` → `204`; web nhận thêm `Set-Cookie` xóa cookie `moment_rt`.
+- `POST /auth/reset-password` — body `{ "token", "newPassword" }` → `204`. `newPassword` theo cùng quy tắc với đăng ký. Lỗi: `TOKEN_INVALID`, `TOKEN_EXPIRED`, `VALIDATION_FAILED`, `DEMO_ACCOUNT_READONLY` (403).
 
 ### 3.2 Hồ sơ của tôi
 

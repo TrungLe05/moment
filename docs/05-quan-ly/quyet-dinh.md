@@ -22,6 +22,7 @@ Cột "Đề xuất" là phương án đang ghi trong tài liệu (hoặc Claude
 | Q-010 | Tên miền và nhà cung cấp VPS? | Chưa có đề xuất | T-012, T-166 |
 | Q-011 | Dùng dịch vụ gì để gửi email (xác thực, đặt lại mật khẩu) khi triển khai? Phần dev đã chốt Mailpit (D-008); backend gửi qua SMTP chuẩn nên production chỉ đổi cấu hình | Chưa có đề xuất; cần chốt trước T-166 | T-164, T-166 |
 | Q-021 | Production phục vụ frontend tĩnh, TLS và chuyển tiếp `/api` bằng gì? Tài liệu chưa ghi | Chưa có đề xuất | T-164 |
+| Q-022 | BR-03 không nói trường hợp đăng nhập Google trùng email của một tài khoản email **chưa xác thực**. Nếu liên kết thẳng, người đăng ký giả email đó (biết mật khẩu) sẽ vào được tài khoản sau khi chủ thật dùng Google | Đã làm tạm theo đề xuất: xác thực tài khoản đó và bỏ mật khẩu cũ (`UserService.claimUnverifiedAccountByGoogle`). Phương án khác: báo lỗi, bắt xác thực email trước | T-114 (đã làm, cần xác nhận) |
 
 ## Đã chốt
 

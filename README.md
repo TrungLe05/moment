@@ -44,7 +44,7 @@ cp .env.example .env          # rồi đổi POSTGRES_PASSWORD, S3_SECRET_KEY
 docker compose up -d          # PostgreSQL :5432, RustFS :9000 (console :9001), Mailpit :8025
 ```
 
-Backend (đọc `.env` ở gốc repo, health check ở http://localhost:8080/actuator/health):
+Backend (đọc `.env` ở gốc repo, cần đặt `JWT_SIGNING_KEY` trước; health check ở http://localhost:8080/actuator/health; email xem ở Mailpit http://localhost:8025):
 
 ```bash
 cd backend && ./mvnw spring-boot:run
