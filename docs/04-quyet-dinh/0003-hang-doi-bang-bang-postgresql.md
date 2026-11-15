@@ -1,6 +1,6 @@
 # 0003. Hàng đợi việc nền bằng bảng PostgreSQL
 
-Trạng thái: Đề xuất · Ngày: 16/11/2026
+Trạng thái: Đã chấp nhận · Ngày: 16/11/2026
 
 ## Bối cảnh
 

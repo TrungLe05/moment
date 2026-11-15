@@ -32,14 +32,14 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-004 | Danh sách API bản nháp 1 | Xong | [danh-sach-api.md](../02-ky-thuat/danh-sach-api.md) |
 | T-005 | Bản mẫu giao diện 5 màn hình | Xong | Bố cục đạt; font và glassmorphism tách thành T-010, T-011 |
 | T-006 | Lập bộ file quản lý nhiệm vụ, tiến độ, quyết định | Xong | Thư mục `05-quan-ly/` và `CLAUDE.md` |
-| T-007 | Chốt 8 giả định A1–A8 của đặc tả | Chờ | Chờ Q-001 → Q-008 |
-| T-008 | Xử lý các điểm lệch giữa tài liệu | Chờ | Chờ Q-012 → Q-019 |
-| T-009 | Chốt ADR 0003 (hàng đợi bằng PostgreSQL) | Chờ | Chờ Q-009 |
+| T-007 | Chốt 8 giả định A1–A8 của đặc tả | Xong | D-014 → D-021 |
+| T-008 | Xử lý các điểm lệch giữa tài liệu | Xong | D-023 → D-030 |
+| T-009 | Chốt ADR 0003 (hàng đợi bằng PostgreSQL) | Xong | D-022 |
 | T-010 | Chọn lại font, hiển thị tốt tiếng Việt có dấu | Chưa làm | [Định hướng giao diện](../03-giao-dien/dinh-huong-giao-dien.md) |
 | T-011 | Thử glassmorphism trên bản mẫu, kèm phương án nền đặc | Chưa làm | Tương phản chữ tối thiểu 4.5:1 |
 | T-012 | Chọn tên miền và nhà cung cấp VPS | Chưa làm | Chờ Q-010; chặn T-166, không chặn việc viết code |
 | T-013 | Ước lượng thời gian cho giai đoạn 1 | Chưa làm | Kế hoạch tổng quan hẹn làm sau khi có đặc tả |
-| T-014 | Nâng đặc tả, database, API lên bản chốt | Chưa làm | Sau T-007, T-008, T-009 |
+| T-014 | Nâng đặc tả, database, API lên bản chốt | Xong | Bản chốt 1 |
 | T-015 | Viết `ARCHITECTURE.md` | Xong | Các mục [Đề xuất] chốt ở T-101 → T-104 |
 | T-016 | Bổ sung quy tắc làm việc và quy ước code vào `CLAUDE.md` | Xong | D-006 |
 
@@ -50,7 +50,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | T-101 | Khởi tạo git repo, `.gitignore`, `.gitattributes` cố định line ending | Must | Xong | Chủ dự án đã `git init` và push lần đầu lên `main`; quy ước nhánh ở D-012 |
-| T-102 | Khung backend Spring Boot (Web, Security, Data JPA, Validation, Flyway), profile `api` và `worker` | Must | Chờ | Khung tối thiểu đã có (Boot 4.1.2, `com.dev.moment`, health, bảo mật tạm, Dockerfile, 3 test pass); profile `api`/`worker` chờ Q-009 |
+| T-102 | Khung backend Spring Boot (Web, Security, Data JPA, Validation, Flyway), profile `api` và `worker` | Must | Chưa làm | Khung tối thiểu đã có (Boot 4.1.2, `com.dev.moment`, health, bảo mật tạm, Dockerfile, 3 test pass); profile `api`/`worker` làm cùng worker (T-132) |
 | T-103 | Khung frontend Next.js `output: 'export'`, Tailwind, shadcn/ui, i18n vi/en | Must | Chưa làm | ADR 0001, quy tắc 1 và 7. Đã có Next.js 16 export, Tailwind, `src/i18n/` tối thiểu; còn shadcn/ui, chọn ngôn ngữ, cấu trúc thư mục |
 | T-104 | Docker Compose cho dev: PostgreSQL 16, RustFS, Mailpit | Must | Xong | `compose.yaml`; đã chạy: 4 service lên, bucket riêng tư, ghi/đọc S3 được (D-008, D-009, D-010) |
 | T-105 | Migration `V1__init.sql` theo thiết kế database | Must | Chưa làm | Sau T-014 |
@@ -67,11 +67,11 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-111 | Đăng ký email + mật khẩu, xác thực email | Must | Chưa làm | US-01, US-02, BR-01 |
 | T-112 | Đăng nhập email + mật khẩu, khóa 15 phút sau 5 lần sai | Must | Chưa làm | US-03 |
 | T-113 | JWT access + refresh token xoay vòng theo family, cookie (web) / body (native), đăng xuất | Must | Chưa làm | US-08, API mục 2 |
-| T-114 | Đăng nhập Google bằng ID token | Must | Chưa làm | US-04, BR-03 (chờ Q-006) |
+| T-114 | Đăng nhập Google bằng ID token | Must | Chưa làm | US-04, BR-03, D-023 |
 | T-115 | Quên và đặt lại mật khẩu, thu hồi mọi phiên | Must | Chưa làm | US-05 |
-| T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Chưa làm | US-06, BR-02 (chờ Q-014) |
-| T-117 | Đổi ngôn ngữ giao diện, lưu vào tài khoản | Must | Chưa làm | US-07 (chờ Q-012) |
-| T-118 | Xóa tài khoản và toàn bộ dữ liệu | Should | Chưa làm | US-09 (chờ Q-015) |
+| T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Chưa làm | US-06, BR-02, D-025 |
+| T-117 | Đổi ngôn ngữ giao diện, lưu vào tài khoản | Must | Chưa làm | US-07, D-023 |
+| T-118 | Xóa tài khoản và toàn bộ dữ liệu | Should | Chưa làm | US-09, D-026 |
 | T-119 | Giới hạn tần suất (Bucket4j, trong bộ nhớ) | Must | Chưa làm | API mục 6 |
 
 ### E2 · Bạn bè
@@ -79,8 +79,8 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | T-121 | Mã mời, link, QR, tạo mã mới | Must / Should | Chưa làm | US-10 (Must), US-14 (Should), BR-04 |
-| T-122 | Trang mời và kết bạn, giới hạn 15 có khóa theo thứ tự id | Must | Chưa làm | US-11, BR-05 (chờ Q-002), BR-06 |
-| T-123 | Danh sách bạn bè (x/15) và hủy kết bạn | Must | Chưa làm | US-12, US-13, BR-07 (chờ Q-007) |
+| T-122 | Trang mời và kết bạn, giới hạn 15 có khóa theo thứ tự id | Must | Chưa làm | US-11, BR-05, BR-06 |
+| T-123 | Danh sách bạn bè (x/15) và hủy kết bạn | Must | Chưa làm | US-12, US-13, BR-07 |
 
 ### E3 · Soạn và đăng khoảnh khắc
 
@@ -99,23 +99,23 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | T-141 | `MomentAccessPolicy` dùng chung và API chi tiết khoảnh khắc | Must | Chưa làm | BR-19, BR-20 |
-| T-142 | Feed API và giao diện vuốt dọc, đồng hồ "còn X giờ" | Must | Chưa làm | US-30, US-31 (chờ Q-008) |
-| T-143 | Reaction: thả, đổi, gỡ; chủ xem ai thả gì | Must | Chưa làm | US-32, US-33, BR-21 → BR-24 (chờ Q-005) |
-| T-144 | Chuyển sang lưu giữ và xóa khoảnh khắc | Must | Chưa làm | US-34, US-35, BR-16 (chờ Q-003), BR-18 |
+| T-142 | Feed API và giao diện vuốt dọc, đồng hồ "còn X giờ" | Must | Chưa làm | US-30, US-31 |
+| T-143 | Reaction: thả, đổi, gỡ; chủ xem ai thả gì | Must | Chưa làm | US-32, US-33, BR-21 → BR-24, D-028 |
+| T-144 | Chuyển sang lưu giữ và xóa khoảnh khắc | Must | Chưa làm | US-34, US-35, BR-16, BR-18 |
 
 ### E5 · Kho lưu giữ
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-151 | API kho và giao diện hai tab "Của tôi" / "Được gửi", chi tiết | Must | Chưa làm | US-40 → US-42 (chờ Q-001) |
+| T-151 | API kho và giao diện hai tab "Của tôi" / "Được gửi", chi tiết | Must | Chưa làm | US-40 → US-42 |
 
 ### E6 · Ứng dụng và vận hành
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-161 | Job định kỳ: hết hạn, dọn nháp, dọn token, dọn hàng đợi | Must | Chưa làm | DB mục 9 (chờ Q-018) |
+| T-161 | Job định kỳ: hết hạn, dọn nháp, dọn token, dọn hàng đợi | Must | Chưa làm | DB mục 9, D-029 |
 | T-162 | PWA: manifest, icon, service worker chỉ cache giao diện tĩnh | Must | Chưa làm | US-50 |
-| T-163 | Script seed tài khoản demo | Must | Chưa làm | US-51 (chờ Q-016) |
+| T-163 | Script seed tài khoản demo | Must | Chưa làm | US-51, D-027 |
 | T-164 | Docker Compose production, Cloudflare R2, backup PostgreSQL hằng ngày | Must | Chưa làm | US-52; phục vụ frontend và TLS chờ Q-021 |
 | T-165 | E2E luồng đăng ký → kết bạn → đăng → reaction | Must | Chưa làm | Đặc tả mục 5 |
 | T-166 | Triển khai lên VPS | Must | Chưa làm | Chặn bởi T-012 |

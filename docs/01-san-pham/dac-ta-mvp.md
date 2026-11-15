@@ -1,10 +1,10 @@
 # Đặc tả MVP
 
-Phiên bản: bản nháp 1 · Cập nhật: 16/11/2026 · Liên quan: [Kế hoạch tổng quan](../00-tong-quan/ke-hoach-tong-quan.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md), [Danh sách API](../02-ky-thuat/danh-sach-api.md)
+Phiên bản: bản chốt 1 · Cập nhật: 16/11/2026 · Liên quan: [Kế hoạch tổng quan](../00-tong-quan/ke-hoach-tong-quan.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md), [Danh sách API](../02-ky-thuat/danh-sach-api.md)
 
 MVP là bản web desktop (cài được như PWA) cho phép một nhóm bạn tối đa 15 người chia sẻ khoảnh khắc 24 giờ, chọn lưu giữ những khoảnh khắc đáng nhớ, và thả reaction. Tài liệu này là nguồn sự thật cho hành vi của hệ thống; database và API phải khớp với nó.
 
-Các mục ghi **[Giả định]** là quyết định mình đề xuất nhưng bạn chưa xác nhận. Danh sách đầy đủ ở cuối tài liệu.
+Các giả định A1–A8 đã được chủ dự án chốt ngày 16/11/2026 (D-014 → D-021); danh sách ở cuối tài liệu.
 
 ## 1. Thuật ngữ
 
@@ -25,12 +25,12 @@ Các mục ghi **[Giả định]** là quyết định mình đề xuất nhưng
 
 - **BR-01** Đăng ký bằng email + mật khẩu (tối thiểu 8 ký tự) hoặc bằng Google. Tài khoản email phải xác thực email trước khi đăng nhập được.
 - **BR-02** Username duy nhất, 3–20 ký tự gồm `a-z`, `0-9`, `.`, `_`; không phân biệt hoa thường. Tên hiển thị tối đa 40 ký tự.
-- **BR-03** **[Giả định]** Đăng nhập Google với email trùng một tài khoản email đã xác thực thì tự liên kết vào tài khoản đó (chỉ khi Google báo `email_verified = true`).
+- **BR-03** Đăng nhập Google với email trùng một tài khoản email đã xác thực thì tự liên kết vào tài khoản đó (chỉ khi Google báo `email_verified = true`).
 
 ### Bạn bè
 
 - **BR-04** Mỗi người có đúng một mã mời đang hoạt động. Link mời và mã QR chứa cùng một mã. Người dùng có thể tạo mã mới; mã cũ mất hiệu lực ngay.
-- **BR-05** **[Giả định]** Mở link mời và bấm "Kết bạn" thì hai người thành bạn ngay, không cần chủ link duyệt lại (gửi link = đồng ý trước).
+- **BR-05** Mở link mời và bấm "Kết bạn" thì hai người thành bạn ngay, không cần chủ link duyệt lại (gửi link = đồng ý trước).
 - **BR-06** Mỗi người tối đa 15 bạn. Kết bạn bị từ chối nếu một trong hai bên đã đủ 15. Không tự kết bạn với chính mình; đã là bạn thì không báo lỗi, trả về trạng thái hiện tại.
 - **BR-07** Hủy kết bạn có hiệu lực với cả hai bên ngay lập tức: hai người mất quyền xem mọi khoảnh khắc của nhau, kể cả khoảnh khắc lưu giữ. Kết bạn lại thì quyền xem quay lại (người nhận không bị xóa khỏi danh sách đã chốt).
 
@@ -44,8 +44,8 @@ Các mục ghi **[Giả định]** là quyết định mình đề xuất nhưng
 - **BR-13** Khoảnh khắc chỉ hiện với người nhận khi đã xử lý xong. Cửa sổ feed tính từ lúc chủ bấm gửi.
 - **BR-14** Chế độ chia sẻ: hết 24 giờ thì khoảnh khắc biến khỏi feed, file bị xóa khỏi kho lưu trữ, bản ghi được giữ ở trạng thái hết hạn.
 - **BR-15** Chế độ lưu giữ: hết 24 giờ thì khoảnh khắc rời feed nhưng vẫn nằm trong kho của chủ và của người nhận.
-- **BR-16** Chủ được chuyển khoảnh khắc từ chia sẻ sang lưu giữ khi nó còn trong 24 giờ. **[Giả định]** Không có chiều ngược lại; muốn bỏ thì xóa.
-- **BR-17** **[Giả định]** Sau khi đăng, nội dung khoảnh khắc (ảnh, caption, lớp trang trí, người nhận) không sửa được trong MVP.
+- **BR-16** Chủ được chuyển khoảnh khắc từ chia sẻ sang lưu giữ khi nó còn trong 24 giờ. Không có chiều ngược lại; muốn bỏ thì xóa.
+- **BR-17** Sau khi đăng, nội dung khoảnh khắc (ảnh, caption, lớp trang trí, người nhận) không sửa được trong MVP.
 - **BR-18** Chủ xóa khoảnh khắc bất kỳ lúc nào. Xóa thì file bị xóa, khoảnh khắc biến mất với mọi người, reaction bị xóa theo.
 
 ### Quyền xem
@@ -57,7 +57,7 @@ Các mục ghi **[Giả định]** là quyết định mình đề xuất nhưng
 
 ### Reaction
 
-- **BR-21** **[Giả định]** Bộ emoji cố định: ❤️ 😍 🔥 😂 😮 😢. Mỗi người tối đa một reaction trên một khoảnh khắc; thả emoji khác thì thay emoji cũ; thả lại đúng emoji đang chọn thì gỡ.
+- **BR-21** Bộ emoji cố định: ❤️ 😍 🔥 😂 😮 😢. Mỗi người tối đa một reaction trên một khoảnh khắc; thả emoji khác thì thay emoji cũ; thả lại đúng emoji đang chọn thì gỡ.
 - **BR-22** Chỉ chủ thấy ai đã thả reaction gì. Người thả chỉ thấy reaction của chính mình.
 - **BR-23** Chủ không tự thả reaction vào khoảnh khắc của mình.
 - **BR-24** Chỉ thả reaction được khi đang có quyền xem khoảnh khắc (BR-19).
@@ -171,7 +171,7 @@ Tiêu chí chấp nhận:
 | US-52 | Là chủ dự án, tôi triển khai toàn bộ hệ thống bằng một lệnh Docker Compose | Must |
 
 - **US-50** Có web app manifest, icon, service worker cache phần giao diện tĩnh (không cache dữ liệu riêng tư).
-- **US-51** Thông tin đăng nhập demo hiện trên trang đăng nhập. Dữ liệu demo được dựng lại bằng script seed; tài khoản demo không đổi được mật khẩu và không xóa được tài khoản.
+- **US-51** Thông tin đăng nhập demo hiện trên trang đăng nhập. Dữ liệu demo được dựng lại bằng script seed; tài khoản demo không đổi được mật khẩu và không xóa được tài khoản; mọi thao tác khác như tài khoản thường. Script seed chạy lại hằng ngày (D-027).
 
 ## 4. Luồng màn hình
 
@@ -219,7 +219,9 @@ Bản mẫu giao diện cho feed, trình soạn, kho: https://claude.ai/artifact
 
 Ghi chú dài dưới ảnh, chat 1-1, trả lời bằng khoảnh khắc, thông báo đẩy, photobooth, "Ngày này năm trước", yêu thích, hộp thời gian, tổng kết cuối năm, gắn nhạc, widget, gói premium, chat nhóm, sửa khoảnh khắc sau khi đăng, lưu khoảnh khắc của bạn bè, ứng dụng Android/iOS.
 
-## 7. Giả định cần xác nhận
+## 7. Giả định đã chốt
+
+Tất cả chốt theo phương án đề xuất ngày 16/11/2026 (D-014 → D-021). Cột "Phương án khác" giữ lại để biết lựa chọn đã cân nhắc.
 
 | Mã | Giả định | Phương án khác |
 | --- | --- | --- |

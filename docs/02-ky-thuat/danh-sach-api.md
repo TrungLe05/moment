@@ -1,6 +1,6 @@
 # Danh sách API (MVP)
 
-Phiên bản: bản nháp 1 · Cập nhật: 16/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md)
+Phiên bản: bản chốt 1 · Cập nhật: 16/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md)
 
 MVP có 32 endpoint REST dưới tiền tố `/api/v1`, chia 5 nhóm. Không có WebSocket trong MVP (chat và realtime ở giai đoạn 2). File ảnh/video không đi qua API: API cấp presigned URL, client tải thẳng lên object storage.
 
@@ -39,7 +39,7 @@ Client dựa vào `code` để xử lý; `title`, `detail`, `message` chỉ đ�
 
 ## 2. Xác thực và phiên đăng nhập
 
-Đăng nhập thành công (email/mật khẩu hoặc Google) trả access token trong body. Refresh token (hết hạn 30 ngày, xoay vòng mỗi lần dùng) trả theo loại client:
+Đăng nhập thành công (email/mật khẩu hoặc Google) trả access token trong body. Access token có claim `auth_time` là thời điểm người dùng xác thực bằng mật khẩu hoặc Google; refresh không đổi `auth_time` (D-026). Refresh token (hết hạn 30 ngày, xoay vòng mỗi lần dùng) trả theo loại client:
 
 - `X-Client-Type: web` → cookie `moment_rt`, `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/v1/auth`. Body không chứa refresh token.
 - `X-Client-Type: native` → trường `refreshToken` trong body; app lưu vào Keychain/Keystore.
@@ -91,7 +91,7 @@ Chi tiết:
 - `POST /auth/verify-email` — body `{ "token" }` → `204`. Lỗi: `TOKEN_INVALID` (400), `TOKEN_EXPIRED` (400).
 - `POST /auth/resend-verification`, `POST /auth/forgot-password` — body `{ "email" }` → luôn `202`, kể cả email không tồn tại (không lộ tài khoản).
 - `POST /auth/login` — body `{ "email", "password" }` → `200` như mẫu ở mục 2. Lỗi: `INVALID_CREDENTIALS` (401), `EMAIL_NOT_VERIFIED` (403), `LOGIN_LOCKED` (429, có header `Retry-After`).
-- `POST /auth/google` — body `{ "idToken" }` → `200` như đăng nhập, thêm `"isNewUser": true|false`. Server kiểm tra chữ ký, `aud` bằng client id của dự án, `iss`, hạn dùng. Lỗi: `GOOGLE_TOKEN_INVALID` (401).
+- `POST /auth/google` — body `{ "idToken", "locale"? }` → `200` như đăng nhập, thêm `"isNewUser": true|false`. `locale` (`vi` hoặc `en`) chỉ dùng khi tạo tài khoản mới; thiếu thì dùng `vi` (D-023). Server kiểm tra chữ ký, `aud` bằng client id của dự án, `iss`, hạn dùng. Lỗi: `GOOGLE_TOKEN_INVALID` (401).
 - `POST /auth/refresh` — web: không body, đọc cookie; native: body `{ "refreshToken" }` → `200 { accessToken, expiresIn }` (+ refresh token mới theo mục 2). Lỗi: `UNAUTHENTICATED`, `TOKEN_REUSED` (401).
 - `POST /auth/reset-password` — body `{ "token", "newPassword" }` → `204`. Lỗi: `TOKEN_INVALID`, `TOKEN_EXPIRED`, `VALIDATION_FAILED`, `DEMO_ACCOUNT_READONLY` (403).
 
@@ -108,9 +108,9 @@ Chi tiết:
 
 - `PATCH /me` — body chỉ gồm trường cần đổi: `{ "username"?, "displayName"?, "locale"? }` → `200` user. Lỗi: `USERNAME_TAKEN` (409), `VALIDATION_FAILED`.
 - `GET /usernames/{username}/availability` → `200 { "available": true }`. Giới hạn tần suất để chống dò username.
-- `POST /me/avatar/upload-url` — body `{ "contentType", "sizeBytes" }` (JPEG/PNG/WebP, tối đa 5 MB) → `200 { "uploadId", "upload": { "method": "PUT", "url", "headers", "expiresAt" } }`.
-- `POST /me/avatar/complete` — body `{ "uploadId" }` → `200` user với `avatarUrl` mới.
-- `DELETE /me` — body `{ "password" }` cho tài khoản có mật khẩu; tài khoản chỉ có Google phải đăng nhập lại trong 5 phút gần nhất → `204`. Lỗi: `INVALID_CREDENTIALS`, `REAUTH_REQUIRED` (403), `DEMO_ACCOUNT_READONLY`.
+- `POST /me/avatar/upload-url` — body `{ "contentType", "sizeBytes" }` (JPEG/PNG/WebP, tối đa 5 MB) → `200 { "uploadId", "upload": { "method": "PUT", "url", "headers", "expiresAt" } }`. `uploadId` là chuỗi do server ký, chứa userId, object key và hạn dùng 15 phút; không lưu vào database (D-025).
+- `POST /me/avatar/complete` — body `{ "uploadId" }` → `200` user với `avatarUrl` mới. `uploadId` sai chữ ký, hết hạn hoặc của người khác → `TOKEN_INVALID` (400).
+- `DELETE /me` — body `{ "password" }` cho tài khoản có mật khẩu; tài khoản chỉ có Google phải đăng nhập lại trong 5 phút gần nhất, kiểm tra qua claim `auth_time` của access token (D-026) → `204`. Lỗi: `INVALID_CREDENTIALS`, `REAUTH_REQUIRED` (403), `DEMO_ACCOUNT_READONLY`.
 
 ### 3.3 Mời và bạn bè
 
@@ -152,7 +152,6 @@ Chi tiết:
   "audience": "SELECTED",
   "recipientIds": ["9b1e...", "c42d..."],
   "caption": "trời hôm nay đẹp quá trời ơi",
-  "note": "Đi bộ từ thư viện về thì gặp cảnh này...",
   "layers": [ { "id": "c1", "type": "caption", "text": "trời hôm nay đẹp quá trời ơi", "x": 0.5, "y": 0.88, "scale": 1, "rotation": 0, "style": "pill-dark" } ],
   "layersVersion": 1,
   "trimStartMs": null,
@@ -180,7 +179,7 @@ Quy tắc kiểm tra khi tạo:
 - Ảnh cần đúng hai file `ORIGINAL` + `COMPOSED`; video cần đúng một file `ORIGINAL`.
 - Định dạng và dung lượng theo BR-10; `COMPOSED` phải là `image/jpeg` hoặc `image/webp`.
 - `audience: "ALL"` thì bỏ qua `recipientIds`, server chốt danh sách là mọi bạn bè hiện tại; `"SELECTED"` thì `recipientIds` phải có ít nhất 1 người và tất cả đều là bạn hiện tại.
-- `caption`, `note`, `layers` theo BR-11 và mục 5 của thiết kế database.
+- `caption`, `layers` theo BR-11 và mục 5 của thiết kế database.
 - `trimStartMs` chỉ dùng cho video tải lên.
 
 Lỗi: `VALIDATION_FAILED`, `UNSUPPORTED_MEDIA_TYPE` (415), `PAYLOAD_TOO_LARGE` (413), `NO_FRIENDS` (422), `NOT_FRIENDS` (422, `errors` liệt kê id không hợp lệ).
@@ -203,7 +202,7 @@ Lỗi: `VALIDATION_FAILED`, `UNSUPPORTED_MEDIA_TYPE` (415), `PAYLOAD_TOO_LARGE` 
 | DELETE | `/moments/{id}/reaction` | Gỡ reaction của tôi | US-32 |
 | GET | `/moments/{id}/reactions` | Ai đã thả gì (chỉ chủ) | US-33 |
 
-- `PUT /moments/{id}/reaction` — body `{ "emoji": "🔥" }` → `200 { "emoji": "🔥" }`. Hành vi "thả lại đúng emoji thì gỡ" (BR-21) do client xử lý bằng cách gọi `DELETE`. Lỗi: `VALIDATION_FAILED` (emoji ngoài bộ cố định), `REACTION_OWN_MOMENT` (422), `NOT_FOUND` (không có quyền xem).
+- `PUT /moments/{id}/reaction` — body `{ "emoji": "🔥" }` → `200 { "emoji": "🔥" }`. Hành vi "thả lại đúng emoji thì gỡ" (BR-21) do client xử lý bằng cách gọi `DELETE`. Server chuẩn hóa emoji trước khi kiểm tra, ví dụ `❤` (U+2764 không có U+FE0F) thành `❤️` (D-028). Lỗi: `VALIDATION_FAILED` (emoji ngoài bộ cố định), `REACTION_OWN_MOMENT` (422), `NOT_FOUND` (không có quyền xem).
 - `DELETE /moments/{id}/reaction` → `204`, kể cả khi chưa thả.
 - `GET /moments/{id}/reactions` → `200 { "items": [ { "user": <user tóm tắt>, "emoji": "😍", "reactedAt": "..." } ] }`. Không phải chủ → `404`.
 
@@ -219,7 +218,6 @@ Lỗi: `VALIDATION_FAILED`, `UNSUPPORTED_MEDIA_TYPE` (415), `PAYLOAD_TOO_LARGE` 
   "mode": "SHARED",
   "status": "READY",
   "caption": "trời hôm nay đẹp quá trời ơi",
-  "note": "Đi bộ từ thư viện về thì gặp cảnh này...",
   "layers": [ "..." ],
   "layersVersion": 1,
   "width": 1440,
