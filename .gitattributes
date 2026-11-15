@@ -1,0 +1,20 @@
+# Mọi file văn bản lưu LF trong repo (CLAUDE.md: line ending LF), kể cả khi làm trên Windows.
+* text=auto eol=lf
+
+# Script Windows bắt buộc CRLF mới chạy được.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# File nhị phân: không đổi line ending, không diff dạng văn bản.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp4 binary
+*.webm binary
+*.woff binary
+*.woff2 binary
+*.jar binary

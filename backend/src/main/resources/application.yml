@@ -1,0 +1,30 @@
+# Cấu hình chung. Giá trị bí mật luôn lấy từ biến môi trường, không ghi vào đây.
+spring:
+  application:
+    name: moment
+  config:
+    # Khi dev: đọc .env ở gốc repo (chạy từ gốc hoặc từ backend/). Không có file thì bỏ qua,
+    # nên container và CI chỉ dùng biến môi trường thật.
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
+  datasource:
+    # Production đặt DB_URL, DB_USERNAME, DB_PASSWORD; dev dựng từ các biến POSTGRES_* của Compose.
+    url: ${DB_URL:jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:moment}}
+    username: ${DB_USERNAME:${POSTGRES_USER:moment}}
+    password: ${DB_PASSWORD:${POSTGRES_PASSWORD:}}
+  jpa:
+    # Schema chỉ đổi qua Flyway; Hibernate chỉ kiểm tra entity khớp bảng.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
