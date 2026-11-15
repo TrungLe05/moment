@@ -11,7 +11,7 @@ MVP có 32 endpoint REST dưới tiền tố `/api/v1`, chia 5 nhóm. Không có
 | Định dạng | JSON, UTF-8, tên trường `camelCase`, thời gian ISO 8601 UTC (`2026-11-16T02:30:00Z`) |
 | Xác thực | `Authorization: Bearer <accessToken>`; access token là JWT hết hạn sau 15 phút |
 | Loại client | Header `X-Client-Type: web` hoặc `native` quyết định cách trả refresh token (mục 2) |
-| Ngôn ngữ | `Accept-Language: vi` hoặc `en`; quyết định ngôn ngữ của `title`/`detail` trong lỗi |
+| Ngôn ngữ | `Accept-Language: vi` hoặc `en`; quyết định ngôn ngữ của `title`/`detail` trong lỗi. Thiếu header hoặc ngôn ngữ khác → `en` |
 | Truy vết | Server trả `X-Request-Id` trong mọi phản hồi; client có thể gửi sẵn header này |
 | Phân trang | Con trỏ: `?cursor=<chuỗi>&limit=<số>`; phản hồi có `items` và `nextCursor` (`null` khi hết). Con trỏ là chuỗi mờ, client không tự tạo |
 | Không có quyền xem | Trả `404 NOT_FOUND`, không trả `403`, để không lộ khoảnh khắc có tồn tại hay không (BR-20) |
@@ -36,6 +36,8 @@ Lỗi trả theo RFC 9457 (Problem Details), `Content-Type: application/problem+
 ```
 
 Client dựa vào `code` để xử lý; `title`, `detail`, `message` chỉ để hiển thị.
+
+Mã lỗi của từng trường trong `errors`: `REQUIRED` (thiếu), `INVALID_FORMAT` (sai định dạng), `TOO_SHORT`, `TOO_LONG` (độ dài, đếm theo ký tự hiển thị với chữ người dùng nhập), `INVALID` (giá trị khác không hợp lệ). Body không đọc được (JSON hỏng, thiếu tham số) trả `VALIDATION_FAILED` không có `errors`. Đường dẫn hoặc phương thức không tồn tại trả `404 NOT_FOUND`.
 
 ## 2. Xác thực và phiên đăng nhập
 
