@@ -163,7 +163,7 @@ Một VPS, một Docker Compose. Các service (dev đã chốt ở D-009; produc
 
 Cấu hình (URL database, khóa object storage, khóa ký JWT, client id Google, danh sách origin CORS) đọc từ biến môi trường; không có giá trị bí mật nào nằm trong repo. Khi dev, Compose và backend cùng đọc file `.env` ở gốc repo (mẫu ở `.env.example`).
 
-**CI/CD (D-011).** GitHub Actions chạy trên mỗi pull request và push lên `main`: backend `mvnw verify` (Testcontainers với PostgreSQL thật), frontend lint, kiểm tra kiểu và build xuất tĩnh. Push lên `main` hoặc tag `v*` mà hai job xanh thì build image backend và đẩy lên Docker Hub (`<user>/moment-backend`). Chưa có bước triển khai lên VPS (Q-010, T-166).
+**CI/CD (D-011).** GitHub Actions chạy trên mỗi pull request và push lên `main`: backend `mvnw verify` (Testcontainers với PostgreSQL thật), frontend lint, kiểm tra kiểu và build xuất tĩnh. Push lên `main` hoặc tag `v*` mà hai job xanh thì build image backend và đẩy lên Docker Hub (`<user>/moment-backend`); job này đang tạm tắt đến release v1 (D-013). Chưa có bước triển khai lên VPS (Q-010, T-166).
 
 ## 7. Sẵn sàng đa nền tảng
 

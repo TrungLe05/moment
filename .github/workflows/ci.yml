@@ -1,6 +1,6 @@
 # CI/CD (T-109, D-011)
-# - Pull request và push lên main: test backend, kiểm tra và build frontend.
-# - Push lên main hoặc tag v*: sau khi hai job trên xanh, build image backend và đẩy lên Docker Hub.
+# - Mọi pull request và push lên main, develop, release/*: test backend, kiểm tra và build frontend.
+# - Đẩy image backend lên Docker Hub: đang tạm tắt đến khi release v1 (D-013), xem job cuối file.
 # Chưa có bước triển khai lên VPS (chờ Q-010, T-166).
 #
 # Cần tạo trong GitHub → Settings → Secrets and variables → Actions:
@@ -11,7 +11,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # Theo mô hình nhánh D-012: main, develop và nhánh release.
+    branches: [main, develop, "release/**"]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
@@ -81,38 +82,42 @@ jobs:
           path: frontend/out/
           retention-days: 7
 
-  publish-backend-image:
-    name: Đẩy image backend lên Docker Hub
-    needs: [backend, frontend]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: docker/setup-buildx-action@v4
-
-      - uses: docker/login-action@v4
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # Tag: main → latest + sha-<commit>; tag v1.2.3 → 1.2.3 và 1.2.
-      - id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: docker.io/${{ vars.DOCKERHUB_USERNAME }}/moment-backend
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix=sha-
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-
-      - uses: docker/build-push-action@v7
-        with:
-          context: backend
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  # TẠM TẮT (D-013): chưa có chức năng ổn định nên chưa phát hành image.
+  # Bỏ comment khối dưới khi chuẩn bị release v1 (T-110), sau khi đã tạo biến
+  # DOCKERHUB_USERNAME và secret DOCKERHUB_TOKEN trên GitHub.
+  #
+  # publish-backend-image:
+  #   name: Đẩy image backend lên Docker Hub
+  #   needs: [backend, frontend]
+  #   if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 20
+  #   steps:
+  #     - uses: actions/checkout@v7
+  #
+  #     - uses: docker/setup-buildx-action@v4
+  #
+  #     - uses: docker/login-action@v4
+  #       with:
+  #         username: ${{ vars.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #
+  #     # Tag: main → latest + sha-<commit>; tag v1.2.3 → 1.2.3 và 1.2.
+  #     - id: meta
+  #       uses: docker/metadata-action@v6
+  #       with:
+  #         images: docker.io/${{ vars.DOCKERHUB_USERNAME }}/moment-backend
+  #         tags: |
+  #           type=raw,value=latest,enable={{is_default_branch}}
+  #           type=sha,prefix=sha-
+  #           type=semver,pattern={{version}}
+  #           type=semver,pattern={{major}}.{{minor}}
+  #
+  #     - uses: docker/build-push-action@v7
+  #       with:
+  #         context: backend
+  #         push: true
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         cache-from: type=gha
+  #         cache-to: type=gha,mode=max
