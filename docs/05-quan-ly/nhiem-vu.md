@@ -20,8 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| T-101 | Khởi tạo git repo | `.gitignore`, `.gitattributes` đã có; chờ chủ dự án `git init` và push lần đầu |
-| T-109 | CI/CD GitHub Actions + Docker Hub | Workflow đã viết, qua actionlint; chờ lần push đầu để xác nhận CI xanh trên GitHub |
+| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: chốt Q-009, rồi T-103, T-106 |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -50,7 +49,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-101 | Khởi tạo git repo, `.gitignore`, `.gitattributes` cố định line ending | Must | Đang làm | Hai file đã có; chủ dự án tự `git init` và push |
+| T-101 | Khởi tạo git repo, `.gitignore`, `.gitattributes` cố định line ending | Must | Xong | Chủ dự án đã `git init` và push lần đầu lên `main`; quy ước nhánh ở D-012 |
 | T-102 | Khung backend Spring Boot (Web, Security, Data JPA, Validation, Flyway), profile `api` và `worker` | Must | Chờ | Khung tối thiểu đã có (Boot 4.1.2, `com.dev.moment`, health, bảo mật tạm, Dockerfile, 3 test pass); profile `api`/`worker` chờ Q-009 |
 | T-103 | Khung frontend Next.js `output: 'export'`, Tailwind, shadcn/ui, i18n vi/en | Must | Chưa làm | ADR 0001, quy tắc 1 và 7. Đã có Next.js 16 export, Tailwind, `src/i18n/` tối thiểu; còn shadcn/ui, chọn ngôn ngữ, cấu trúc thư mục |
 | T-104 | Docker Compose cho dev: PostgreSQL 16, RustFS, Mailpit | Must | Xong | `compose.yaml`; đã chạy: 4 service lên, bucket riêng tư, ghi/đọc S3 được (D-008, D-009, D-010) |
@@ -58,7 +57,8 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-106 | Hạ tầng chung backend: lỗi RFC 9457, `X-Request-Id`, `Accept-Language`, CORS theo danh sách origin | Must | Chưa làm | API mục 1 |
 | T-107 | Lớp interface nền tảng ở frontend (`CameraService`, `NotificationService`, `ShareService`, `TokenStore`, `GoogleSignIn`), bản web | Must | Chưa làm | Kế hoạch, quy tắc 2 |
 | T-108 | Thiết lập kiểm thử: unit, integration với Testcontainers (PostgreSQL, RustFS), công cụ E2E | Must | Chưa làm | Testcontainers PostgreSQL đã chạy; RustFS thêm khi có code storage; công cụ E2E chưa chọn |
-| T-109 | CI/CD GitHub Actions: test backend, build frontend, đẩy image backend lên Docker Hub | Must | Đang làm | D-011; cần biến `DOCKERHUB_USERNAME`, secret `DOCKERHUB_TOKEN` |
+| T-109 | CI/CD GitHub Actions: test backend, build frontend, đẩy image backend lên Docker Hub | Must | Xong | D-011; job backend và frontend xanh trên GitHub ở lần push đầu (chủ dự án xác nhận); job đẩy image tạm tắt (D-013) |
+| T-110 | Bật lại job đẩy image backend lên Docker Hub khi release v1 | Must | Chờ | D-013; chờ có chức năng ổn định. Cần biến `DOCKERHUB_USERNAME`, secret `DOCKERHUB_TOKEN` |
 
 ### E1 · Tài khoản
 

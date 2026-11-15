@@ -35,7 +35,7 @@ Mạng xã hội nhỏ cho nhóm bạn thân: chia sẻ khoảnh khắc 24 giờ
 
 ## Quy ước chung
 
-- Tài liệu và comment viết tiếng Việt; file UTF-8, line ending LF.
+- Tài liệu và comment giải thích code viết tiếng Việt; commit message, tiêu đề và mô tả PR viết tiếng Anh (mục Git). File UTF-8, line ending LF.
 - Mã tham chiếu: `US-xx` (user story), `BR-xx` (quy tắc nghiệp vụ), `A-x` (giả định) trong đặc tả MVP; `T-xxx` nhiệm vụ; `Q-xxx` câu hỏi mở; `D-xxx` quyết định đã chốt.
 - Code tuân theo 8 quy tắc ở mục "Chiến lược đa nền tảng" của [kế hoạch tổng quan](docs/00-tong-quan/ke-hoach-tong-quan.md#chiến-lược-đa-nền-tảng); các quy ước frontend bên dưới là cách áp dụng chúng.
 - Comment giải thích *tại sao*, không lặp lại code. Code hiện thực một quy tắc nghiệp vụ thì ghi mã của nó, ví dụ `// BR-06: khóa hai user theo thứ tự id để tránh deadlock`.
@@ -81,6 +81,20 @@ Mạng xã hội nhỏ cho nhóm bạn thân: chia sẻ khoảnh khắc 24 giờ
 
 ## Git
 
-- Conventional Commits `type(scope): mô tả ngắn`, mô tả viết thường, không dấu chấm cuối; mỗi commit một mục đích. Author `TrungLe05`.
+Chỉ commit, push hay tạo PR khi chủ dự án cho phép cho việc đó (D-012).
+
+### Mô hình nhánh
+
+- `main`: nhánh chính, chỉ nhận code đã ổn định từ nhánh release. Không commit thẳng.
+- `develop`: nhánh gom code. Chỉ nhận PR, không commit thẳng.
+- Nhánh làm việc tách từ `develop`, đặt tên `<type>/<T-xxx>-<mo-ta-ngan>`, ví dụ `feat/T-111-email-signup`; xong thì tạo PR vào `develop`.
+- Nhánh có lỗi: tách nhánh sửa từ chính nhánh đó (`fix/<T-xxx>-<mo-ta-ngan>`), sửa xong tạo PR vào lại nhánh đó; nhánh đó ổn rồi mới tạo PR vào `develop`.
+- Khi code trên `develop` ổn định: tách `release/<phiên bản>`, ví dụ `release/1.0.0`, rồi PR vào `main` và gắn tag `v<phiên bản>`.
+
+### Commit và PR
+
+- Commit message viết tiếng Anh theo Conventional Commits `type(scope): short description`, mô tả viết thường, không dấu chấm cuối; mỗi commit một mục đích. Không thêm trailer kiểu Claude Code (`Co-Authored-By`, "Generated with Claude Code").
+- Tiêu đề và mô tả PR viết tiếng Anh; tiêu đề theo cùng dạng Conventional Commits. Mô tả PR không thêm trailer hay footer kiểu Claude Code (không có dòng "Generated with Claude Code", không có `Co-Authored-By`).
+- Commit và push bằng tài khoản của chủ dự án theo `git config` sẵn có; không đổi `user.name`, `user.email`, remote hay thông tin xác thực.
 - Trước khi commit: xem `git diff --stat` và `git diff --ignore-cr-at-eol`; `git add` theo đường dẫn cụ thể, không `git add -A`.
 - Không commit secret, file build, `node_modules/`, `target/`, `.env`.

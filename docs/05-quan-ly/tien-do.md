@@ -4,18 +4,18 @@ Cập nhật: 16/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Quyết đ
 
 ## Trạng thái hiện tại
 
-Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền tảng của giai đoạn 1. Bộ tài liệu thiết kế đã có bản nháp 1. Đã có hạ tầng dev (Compose: PostgreSQL, RustFS, Mailpit), `.env.example`, khung backend Spring Boot và frontend Next.js tối thiểu, CI/CD GitHub Actions đẩy image lên Docker Hub. Thư mục dự án chưa phải git repo (chủ dự án tự khởi tạo và push).
+Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền tảng của giai đoạn 1. Bộ tài liệu thiết kế đã có bản nháp 1. Đã có hạ tầng dev (Compose: PostgreSQL, RustFS, Mailpit), `.env.example`, khung backend Spring Boot và frontend Next.js tối thiểu, CI GitHub Actions (job đẩy image lên Docker Hub tạm tắt đến release v1). Repo đã push lần đầu lên `main`, CI xanh; quy ước nhánh `main` / `develop` / nhánh làm việc / `release/*` ở D-012.
 
 Đang chặn: 8 giả định của đặc tả (Q-001 → Q-008), ADR 0003 (Q-009, chặn profile `api`/`worker`), 8 điểm lệch giữa tài liệu (Q-012 → Q-019). Tên miền, VPS (Q-010), email production (Q-011) và cách phục vụ frontend ở production (Q-021) chỉ chặn bước triển khai.
 
-**Việc kế tiếp:** chủ dự án `git init`, đặt biến/secret Docker Hub và push lần đầu để xác nhận CI (T-101, T-109); trả lời Q-001 → Q-019 và Q-021; Claude cập nhật tài liệu lên bản chốt (T-014), làm tiếp T-103, T-106.
+**Việc kế tiếp:** chủ dự án tạo nhánh `develop`; trả lời Q-001 → Q-019 và Q-021; Claude cập nhật tài liệu lên bản chốt (T-014), làm tiếp T-103, T-106.
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 8 / 16 | Còn chốt giả định, sửa điểm lệch, font, glassmorphism, ước lượng |
-| 1 · MVP | Đang làm | 1 / 39 | T-104 xong; T-101, T-109 chờ push đầu; T-102 chờ Q-009. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 3 / 40 | T-101, T-104, T-109 xong; T-102 chờ Q-009; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -23,6 +23,14 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 16/11/2026 · Tạm tắt đẩy image, chốt quy ước git
+
+- Chủ dự án đã push lần đầu lên `main`; job backend và frontend xanh, job đẩy image lên Docker Hub lỗi. Theo yêu cầu, comment job đó lại đến khi release v1 (D-013, T-110); T-101 và T-109 chuyển "Xong".
+- CI chạy thêm khi push lên `develop` và `release/**`, theo mô hình nhánh mới. Workflow qua actionlint; bản sửa này chưa chạy trên GitHub.
+- Ghi quy ước git vào `CLAUDE.md` (D-012): mô hình nhánh, commit message, tiêu đề và mô tả PR tiếng Anh, commit và mô tả PR không có trailer Claude Code (kể cả `Co-Authored-By`), push bằng `git config` sẵn có; comment giải thích code viết tiếng Việt.
+- Tên nhánh làm việc `<type>/<T-xxx>-<mo-ta-ngan>` là Claude đề xuất, chủ dự án có thể đổi.
+- Việc kế tiếp: chủ dự án tạo nhánh `develop` và commit bản sửa này; chốt Q-009.
 
 ### 16/11/2026 · Dựng hạ tầng dev, khung repo tối thiểu, CI/CD
 
