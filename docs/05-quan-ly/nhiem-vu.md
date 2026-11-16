@@ -53,8 +53,8 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-102 | Khung backend Spring Boot (Web, Security, Data JPA, Validation, Flyway), profile `api` và `worker` | Must | Chưa làm | Khung tối thiểu đã có (Boot 4.1.2, `com.dev.moment`, health, bảo mật tạm, Dockerfile, 3 test pass); profile `api`/`worker` làm cùng worker (T-132) |
 | T-103 | Khung frontend Next.js `output: 'export'`, Tailwind, shadcn/ui, i18n vi/en | Must | Chưa làm | ADR 0001, quy tắc 1 và 7. Đã có Next.js 16 export, Tailwind, `src/i18n/` tối thiểu; còn shadcn/ui, chọn ngôn ngữ, cấu trúc thư mục |
 | T-104 | Docker Compose cho dev: PostgreSQL 16, RustFS, Mailpit | Must | Xong | `compose.yaml`; đã chạy: 4 service lên, bucket riêng tư, ghi/đọc S3 được (D-008, D-009, D-010) |
-| T-105 | Migration `V1__init.sql` theo thiết kế database | Must | Chưa làm | Sau T-014 |
-| T-106 | Hạ tầng chung backend: lỗi RFC 9457, `X-Request-Id`, `Accept-Language`, CORS theo danh sách origin | Must | Chưa làm | API mục 1 |
+| T-105 | Migration `V1__init.sql` theo thiết kế database | Must | Xong | 11 bảng; test kiểm tra bảng, unique email, định dạng username |
+| T-106 | Hạ tầng chung backend: lỗi RFC 9457, `X-Request-Id`, `Accept-Language`, CORS theo danh sách origin | Must | Xong | Gói `common`: `ErrorCode`, `GlobalExceptionHandler`, `RequestIdFilter`, `Clock`, `GraphemeCounter`, `@MaxGraphemes`; 18 test pass |
 | T-107 | Lớp interface nền tảng ở frontend (`CameraService`, `NotificationService`, `ShareService`, `TokenStore`, `GoogleSignIn`), bản web | Must | Chưa làm | Kế hoạch, quy tắc 2 |
 | T-108 | Thiết lập kiểm thử: unit, integration với Testcontainers (PostgreSQL, RustFS), công cụ E2E | Must | Chưa làm | Testcontainers PostgreSQL đã chạy; RustFS thêm khi có code storage; công cụ E2E chưa chọn |
 | T-109 | CI/CD GitHub Actions: test backend, build frontend, đẩy image backend lên Docker Hub | Must | Xong | D-011; job backend và frontend xanh trên GitHub ở lần push đầu (chủ dự án xác nhận); job đẩy image tạm tắt (D-013) |
