@@ -8,7 +8,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,14 @@ public class FriendService {
     public boolean areFriends(UUID left, UUID right) {
         UserPair pair = UserPair.of(left, right);
         return friendshipRepository.existsById(new Friendship.FriendshipId(pair.first(), pair.second()));
+    }
+
+    /** Id các bạn hiện tại, dùng chốt người nhận khi đăng khoảnh khắc (BR-12). */
+    @Transactional(readOnly = true)
+    public Set<UUID> friendIds(UUID userId) {
+        return friendshipRepository.findAllByUser(userId).stream()
+                .map(friendship -> friendship.otherThan(userId))
+                .collect(Collectors.toSet());
     }
 
     /** Trang mời (US-11): người mời theo mã; mã sai hoặc đã đổi → INVITE_INVALID. */
