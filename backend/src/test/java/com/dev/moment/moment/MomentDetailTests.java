@@ -167,7 +167,9 @@ class MomentDetailTests {
         String momentId = readyPhoto(owner, "ALL", List.of());
         jdbcTemplate.update("UPDATE moments SET mode = 'KEPT', kept_at = created_at WHERE id = ?::uuid", momentId);
 
-        mockMvc.perform(delete("/api/v1/friends/{id}", friend.id()).header("Authorization", "Bearer " + owner.accessToken()));
+        MockHttpServletResponse unfriended = mockMvc.perform(delete("/api/v1/friends/{id}", friend.id())
+                .header("Authorization", "Bearer " + owner.accessToken())).andReturn().getResponse();
+        assertThat(unfriended.getStatus()).isEqualTo(204);
 
         assertThat(detail(momentId, friend).getStatus()).isEqualTo(404);
     }

@@ -37,6 +37,8 @@ class MomentService {
     private static final Duration UPLOAD_URL_TTL = Duration.ofMinutes(15);
     private static final Duration DOWNLOAD_URL_TTL = Duration.ofMinutes(10);
     private static final short CURRENT_LAYERS_VERSION = 1;
+    private static final Set<MomentMedia.Variant> SERVED_VARIANTS = Set.of(MomentMedia.Variant.DISPLAY,
+            MomentMedia.Variant.VIDEO, MomentMedia.Variant.THUMBNAIL);
 
     private final MomentRepository moments;
     private final MomentMediaRepository media;
@@ -152,10 +154,13 @@ class MomentService {
     }
 
     // Không phải chủ thì trả 404 như khoảnh khắc không tồn tại (BR-20).
+    // Quyền xem vẫn đi qua MomentAccessPolicy (CLAUDE.md); thao tác của chủ thì thêm điều kiện là chủ.
     private Moment ownedMoment(UUID ownerId, UUID momentId) {
-        return moments.findById(momentId)
-                .filter(found -> found.getOwnerId().equals(ownerId))
-                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        Moment moment = accessPolicy.viewable(ownerId, momentId);
+        if (!moment.getOwnerId().equals(ownerId)) {
+            throw new ApiException(ErrorCode.NOT_FOUND);
+        }
+        return moment;
     }
 
     private MomentResponse currentResponse(UUID ownerId, UUID momentId) {
@@ -251,14 +256,17 @@ class MomentService {
                 moment.getKeptAt(), mediaUrls(moment, files), null, ownerView);
     }
 
-    // URL đọc file chỉ cấp khi khoảnh khắc đã sẵn sàng (API mục 4).
+    // URL đọc file chỉ cấp khi khoảnh khắc đã sẵn sàng (API mục 4), và chỉ cho bản do worker tạo;
+    // ảnh gốc và bản ghép không bao giờ trả cho client.
     private MomentResponse.MediaUrls mediaUrls(Moment moment, List<MomentMedia> files) {
         if (moment.getStatus() != Moment.Status.READY) {
             return null;
         }
         Map<MomentMedia.Variant, ObjectStorage.PresignedDownload> urls = new EnumMap<>(MomentMedia.Variant.class);
         for (MomentMedia file : files) {
-            urls.put(file.getVariant(), storage.presignDownload(file.getObjectKey(), DOWNLOAD_URL_TTL));
+            if (SERVED_VARIANTS.contains(file.getVariant())) {
+                urls.put(file.getVariant(), storage.presignDownload(file.getObjectKey(), DOWNLOAD_URL_TTL));
+            }
         }
         return new MomentResponse.MediaUrls(urlOf(urls, MomentMedia.Variant.DISPLAY),
                 urlOf(urls, MomentMedia.Variant.VIDEO), urlOf(urls, MomentMedia.Variant.THUMBNAIL),

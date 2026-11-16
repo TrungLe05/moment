@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * Không có quyền thì trả 404 như khoảnh khắc không tồn tại, để không lộ nó có hay không (BR-20).
  */
 @Component
-public class MomentAccessPolicy {
+class MomentAccessPolicy {
 
     private final MomentRepository moments;
     private final MomentRecipientRepository recipients;
