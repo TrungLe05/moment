@@ -100,7 +100,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | --- | --- | --- | --- | --- |
 | T-141 | `MomentAccessPolicy` dùng chung và API chi tiết khoảnh khắc | Must | Xong | BR-13, BR-19, BR-20; 12 test (chủ, người nhận, không phải người nhận, người lạ, hủy kết bạn, mốc 24 giờ, lưu giữ). `myReaction` và `reactionCount` điền ở T-143 |
 | T-142 | Feed API và giao diện vuốt dọc, đồng hồ "còn X giờ" | Must | Xong | US-30, US-31, D-035; 10 test backend, 10 test giao diện. Nút chụp ở trạng thái feed trống chờ T-133; vẽ đủ lớp trang trí trên video chờ T-135 (tạm hiện caption); thanh reaction ở T-143 |
-| T-143 | Reaction: thả, đổi, gỡ; chủ xem ai thả gì | Must | Chưa làm | US-32, US-33, BR-21 → BR-24, D-028 |
+| T-143 | Reaction: thả, đổi, gỡ; chủ xem ai thả gì | Must | Xong | US-32, US-33, BR-21 → BR-24, D-028, D-036; 10 test backend, 6 test giao diện; gói `reaction` hỏi quyền xem qua `MomentAccessPolicy` |
 | T-144 | Chuyển sang lưu giữ và xóa khoảnh khắc | Must | Chưa làm | US-34, US-35, BR-16, BR-18 |
 
 ### E5 · Kho lưu giữ
