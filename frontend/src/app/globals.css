@@ -4,6 +4,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Không gian chia sẻ (feed, trình soạn): nền tối, ảnh là trung tâm, một màu nhấn cam đào
+ * (định hướng giao diện, bản mẫu feed). Chữ chính và chữ phụ trên nền night đều trên 4.5:1.
+ */
+@theme {
+  --color-night: #0e0e10;
+  --color-night-surface: #1c1c20;
+  --color-night-text: #f4f1ec;
+  --color-night-muted: #c9c3ba;
+  --color-peach: #ff9b71;
+  --color-peach-ink: #2b2520;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

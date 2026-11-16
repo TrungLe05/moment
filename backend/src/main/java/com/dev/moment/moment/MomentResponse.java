@@ -42,4 +42,8 @@ record MomentResponse(
 
     record Created(MomentResponse moment, java.util.List<Upload> uploads) {
     }
+
+    /** Một trang feed hoặc kho; nextCursor null khi hết (API mục 1). */
+    record Page(java.util.List<MomentResponse> items, String nextCursor) {
+    }
 }

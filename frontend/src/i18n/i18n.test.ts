@@ -30,7 +30,7 @@ describe("messages", () => {
   });
 
   it("formats named placeholders", () => {
-    expect(format(messages.vi.home.greeting, { name: "Minh Anh" })).toBe("Chào Minh Anh!");
+    expect(format(messages.vi.feed.momentOf, { name: "Minh Anh" })).toBe("Khoảnh khắc của Minh Anh");
   });
 });
 

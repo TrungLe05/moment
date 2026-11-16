@@ -82,6 +82,10 @@ class MomentMedia {
         return id;
     }
 
+    UUID getMomentId() {
+        return momentId;
+    }
+
     Variant getVariant() {
         return variant;
     }

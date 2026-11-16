@@ -4,6 +4,9 @@ import com.dev.moment.common.error.ApiException;
 import com.dev.moment.common.error.ErrorCode;
 import com.dev.moment.friend.FriendService;
 import java.time.Clock;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
@@ -52,5 +55,17 @@ class MomentAccessPolicy {
         return moments.findById(momentId)
                 .filter(moment -> canView(viewerId, moment))
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+    }
+
+    /**
+     * Một trang feed theo cùng quy tắc với {@link #canView} nhưng lọc ngay trong câu truy vấn (ARCHITECTURE.md mục 4),
+     * thêm điều kiện còn trước expires_at cho cả khoảnh khắc lưu giữ và của chính mình (US-30, BR-15).
+     */
+    List<Moment> feedPage(UUID viewerId, FeedCursor after, int limit) {
+        Set<UUID> owners = new HashSet<>(friendService.friendIds(viewerId));
+        owners.add(viewerId);
+        return after == null
+                ? moments.feedFirstPage(viewerId, owners, clock.instant(), limit)
+                : moments.feedPageAfter(viewerId, owners, clock.instant(), after.createdAt(), after.id(), limit);
     }
 }

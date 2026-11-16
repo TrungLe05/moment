@@ -1,5 +1,6 @@
 package com.dev.moment.moment;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 interface MomentMediaRepository extends JpaRepository<MomentMedia, UUID> {
 
     List<MomentMedia> findAllByMomentId(UUID momentId);
+
+    List<MomentMedia> findAllByMomentIdIn(Collection<UUID> momentIds);
 }
