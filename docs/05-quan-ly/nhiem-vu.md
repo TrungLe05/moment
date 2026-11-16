@@ -87,7 +87,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | T-131 | API tạo khoảnh khắc, cấp presigned URL, `complete`, `retry` | Must | Xong | API mục 3.4, 5; object storage qua AWS SDK v2, test với RustFS thật |
-| T-132 | Media worker: lấy việc từ `media_jobs`, ffmpeg cho ảnh và video, thumbnail, thử lại 3 lần | Must | Xong | ADR 0003, DB mục 6, D-033; 15 test với ffmpeg, PostgreSQL, RustFS thật; có cả việc `DELETE_OBJECTS` |
+| T-132 | Media worker: lấy việc từ `media_jobs`, ffmpeg cho ảnh và video, thumbnail, thử lại 3 lần | Must | Xong | ADR 0003, DB mục 6, D-033; 22 test với ffmpeg, PostgreSQL, RustFS thật; có cả việc `DELETE_OBJECTS` |
 | T-133 | Chụp ảnh và quay video 5 giây bằng camera | Must | Chưa làm | US-20, US-21 |
 | T-134 | Tải ảnh/video từ máy, chọn đoạn 5 giây, nhãn "tải lên" | Must | Chưa làm | US-22, BR-09, BR-10 |
 | T-135 | Trình soạn lớp trang trí: caption, sticker, biểu ngữ, đếm theo grapheme | Must | Chưa làm | US-23, US-24, BR-11, ADR 0002 |

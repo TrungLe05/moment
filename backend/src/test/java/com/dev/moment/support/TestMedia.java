@@ -1,6 +1,7 @@
 package com.dev.moment.support;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,6 +24,30 @@ public final class TestMedia {
     public static byte[] image(int width, int height, String extension) {
         return generate(extension, List.of("-f", "lavfi", "-i", "testsrc2=size=" + width + "x" + height,
                 "-frames:v", "1"));
+    }
+
+    /** Ảnh một màu: nén rất nhỏ dù kích thước lớn, dùng để thử giới hạn số điểm ảnh. */
+    public static byte[] solidImage(int width, int height, String extension) {
+        return generate(extension, List.of("-f", "lavfi", "-i", "color=c=gray:size=" + width + "x" + height,
+                "-frames:v", "1"));
+    }
+
+    /** Video mp4 đỏ trong redSeconds giây đầu rồi xanh dương, để kiểm tra đoạn cắt bắt đầu đúng chỗ. */
+    public static byte[] redThenBlueVideo(int redSeconds, int totalSeconds) {
+        String graph = "color=c=red:size=320x240:rate=10:duration=" + redSeconds + "[r];"
+                + "color=c=blue:size=320x240:rate=10:duration=" + (totalSeconds - redSeconds) + "[b];"
+                + "[r][b]concat=n=2:v=1:a=0[v]";
+        return generate("mp4", List.of("-filter_complex", graph, "-map", "[v]", "-c:v", "libx264", "-preset",
+                "ultrafast", "-pix_fmt", "yuv420p"));
+    }
+
+    /**
+     * WebM không ghi thời lượng vào header, giống file MediaRecorder của trình duyệt tạo khi quay (US-21).
+     * Muxer webm ở chế độ live bỏ phần Duration và Cues.
+     */
+    public static byte[] webmWithoutDuration(int seconds) {
+        return generate("webm", List.of("-f", "lavfi", "-i", "testsrc2=size=320x240:rate=15:duration=" + seconds,
+                "-c:v", "libvpx", "-deadline", "realtime", "-f", "webm", "-live", "1"));
     }
 
     /** Video mp4 H.264, có tiếng nếu cần; mã hóa nhanh nhất vì chỉ để làm đầu vào. */
@@ -69,8 +94,8 @@ public final class TestMedia {
                 Files.deleteIfExists(file);
             }
             Files.deleteIfExists(directory);
-        } catch (IOException ignored) {
-            // Thư mục tạm của test; hệ điều hành tự dọn nếu xóa không được.
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Không xóa được thư mục tạm " + directory, exception);
         }
     }
 }

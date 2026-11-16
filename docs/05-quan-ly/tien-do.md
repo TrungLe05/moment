@@ -28,10 +28,10 @@ Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, c�
 
 ### 16/11/2026 · T-132 media worker
 
-- Viết test trước (15 test, ffmpeg + PostgreSQL + RustFS thật) rồi code. Ảnh: `DISPLAY` 1440 px và `THUMBNAIL` 480 px từ `COMPOSED`, không phóng to. Video: H.264 + AAC, cạnh ngắn 720, đúng 5 giây từ `trimStartMs`, thumbnail từ khung đầu; video gốc xóa qua việc `DELETE_OBJECTS`.
-- Hàng đợi: lấy việc bằng `FOR UPDATE SKIP LOCKED` (có test hai worker), lỗi tạm thời thử lại sau 15 giây rồi 60 giây, lần thứ 3 lỗi thì `FAILED`; lỗi của file đánh dấu `FAILED` ngay (D-033). Khoảnh khắc bị xóa hay hết hạn giữa chừng thì không sống lại, file vừa tạo bị dọn.
+- Viết test trước (22 test, ffmpeg + PostgreSQL + RustFS thật) rồi code. Ảnh: `DISPLAY` 1440 px và `THUMBNAIL` 480 px từ `COMPOSED`, không phóng to. Video: H.264 + AAC, cạnh ngắn 720, đúng 5 giây từ `trimStartMs`, thumbnail từ khung đầu; video gốc xóa qua việc `DELETE_OBJECTS`.
+- Hàng đợi: lấy việc bằng `FOR UPDATE SKIP LOCKED` (có test hai worker), lỗi tạm thời thử lại sau 15 giây rồi 60 giây, lần thứ 3 lỗi thì `FAILED`; lỗi của file đánh dấu `FAILED` ngay (D-033). Tự review PR #10: sửa WebM không ghi thời lượng (video quay trên trình duyệt) bị coi là hỏng, chỉ coi là lỗi của file khi ffprobe đọc không được, giới hạn 50 megapixel, chờ ffmpeg dừng hẳn khi quá giờ, test kiểm tra đúng điểm bắt đầu cắt. Khoảnh khắc bị xóa hay hết hạn giữa chừng thì không sống lại, file vừa tạo bị dọn.
 - Bảo mật ffmpeg: ép demuxer theo Content-Type, chỉ cho giao thức `file`, bỏ metadata, có timeout.
-- Profile: mặc định `api`, `worker` bật lịch hỏi hàng đợi (T-102); Dockerfile có stage `worker` cài ffmpeg; CI cài ffmpeg bằng apt (D-034). Đã chạy thử jar với profile `worker` trên Compose: health UP, việc chèn tay được xử lý trong vòng 3 giây. 109 test backend pass.
+- Profile: mặc định `api`, `worker` bật lịch hỏi hàng đợi (T-102); Dockerfile có stage `worker` cài ffmpeg; CI cài ffmpeg bằng apt (D-034). Đã chạy thử jar với profile `worker` trên Compose: health UP, việc chèn tay được xử lý trong vòng 3 giây. 116 test backend pass.
 - Máy dev đã cài ffmpeg 9.0.2 qua scoop.
 - Chưa làm: dọn việc `RUNNING` bị kẹt (T-161), compose production chạy container worker (T-164), giao diện hiện `failureReason` (T-137).
 

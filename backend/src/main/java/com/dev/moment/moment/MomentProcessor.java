@@ -123,14 +123,15 @@ class MomentProcessor implements MediaJobHandler {
     }
 
     // ADR 0002: DISPLAY và THUMBNAIL tạo từ bản ghép sẵn lớp trang trí; ảnh gốc giữ nguyên.
+    // THUMBNAIL thu nhỏ tiếp từ DISPLAY để không phải giải mã ảnh ghép cỡ lớn hai lần.
     private List<Output> processPhoto(Work work, Path directory) {
         MomentMedia composed = work.file(MomentMedia.Variant.COMPOSED);
         Path input = download(composed, directory, MediaRules.composedExtension(composed.getContentType()));
+        transcoder.probe(input, composed.getContentType());
         Path display = directory.resolve("display.jpg");
         Path thumbnail = directory.resolve("thumbnail.jpg");
         MediaInfo displayInfo = transcoder.resizeImage(input, composed.getContentType(), display, DISPLAY_LONG_SIDE);
-        MediaInfo thumbnailInfo = transcoder.resizeImage(input, composed.getContentType(), thumbnail,
-                THUMBNAIL_LONG_SIDE);
+        MediaInfo thumbnailInfo = transcoder.resizeImage(display, JPEG, thumbnail, THUMBNAIL_LONG_SIDE);
         return List.of(new Output(MomentMedia.Variant.DISPLAY, display, JPEG, "jpg", displayInfo),
                 new Output(MomentMedia.Variant.THUMBNAIL, thumbnail, JPEG, "jpg", thumbnailInfo));
     }

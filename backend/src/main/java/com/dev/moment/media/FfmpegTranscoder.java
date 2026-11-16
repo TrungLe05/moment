@@ -32,6 +32,13 @@ import tools.jackson.databind.json.JsonMapper;
 public class FfmpegTranscoder {
 
     private static final int MAX_LOG_BYTES = 4000;
+    // Danh sách gói tin của một video tối đa 60 giây chỉ vài chục KB; vượt mức này coi như file bất thường.
+    private static final int MAX_PACKET_LIST_BYTES = 1024 * 1024;
+    /**
+     * D-033: ảnh hay video lớn hơn 50 megapixel bị coi là không đọc được, để một file nén nhỏ nhưng kích thước khổng lồ
+     * không làm worker tốn hàng GB RAM khi giải mã. Bản ghép xuất từ canvas của trình duyệt nhỏ hơn nhiều mức này.
+     */
+    static final long MAX_PIXELS = 50_000_000L;
     // Đọc output của tiến trình là việc chặn I/O, nên dùng thread ảo thay vì pool chung của CompletableFuture.
     private static final Executor OUTPUT_READERS =
             Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("ffmpeg-output-", 0).factory());
@@ -51,14 +58,66 @@ public class FfmpegTranscoder {
     public record MediaInfo(int width, int height, Integer durationMs) {
     }
 
-    /** Thông tin file đầu vào; file không đọc được theo đúng định dạng khai báo thì ném {@link UnreadableMediaException}. */
+    /**
+     * Kiểm tra file người dùng gửi trước khi xử lý. File không đọc được theo đúng định dạng khai báo, hoặc quá
+     * {@link #MAX_PIXELS}, thì ném {@link UnreadableMediaException} (không thử lại). Sau bước này, lỗi của ffmpeg
+     * được coi là tạm thời (hết đĩa, tiến trình bị dừng) và được thử lại có giới hạn.
+     */
     public MediaInfo probe(Path input, String contentType) {
+        MediaInfo info;
+        try {
+            info = inspect(input, contentType);
+            if (info.durationMs() == null && !contentType.startsWith("image/")) {
+                info = new MediaInfo(info.width(), info.height(), durationFromPackets(input, contentType));
+            }
+        } catch (ToolFailure failure) {
+            throw new UnreadableMediaException(failure.getMessage(), failure);
+        }
+        if ((long) info.width() * info.height() > MAX_PIXELS) {
+            throw new UnreadableMediaException("Kích thước quá lớn: " + info.width() + "x" + info.height());
+        }
+        return info;
+    }
+
+    private MediaInfo inspect(Path file, String contentType) {
+        List<String> command = ffprobe(file, contentType);
+        command.addAll(List.of("-show_entries", "stream=codec_type,width,height:format=duration", "-of", "json",
+                fileUrl(file)));
+        return parseProbe(run(command, MAX_LOG_BYTES));
+    }
+
+    /**
+     * Video ghi bằng MediaRecorder của trình duyệt (WebM) thường không ghi thời lượng vào header, ffprobe báo N/A.
+     * Khi đó đọc mốc thời gian của từng gói tin hình (không giải mã) để biết video dài bao nhiêu.
+     */
+    private Integer durationFromPackets(Path input, String contentType) {
+        List<String> command = ffprobe(input, contentType);
+        command.addAll(List.of("-select_streams", "v:0", "-show_entries", "packet=pts_time,duration_time",
+                "-of", "csv=p=0", fileUrl(input)));
+        String packets = run(command, MAX_PACKET_LIST_BYTES);
+        if (packets.length() >= MAX_PACKET_LIST_BYTES) {
+            throw new ToolFailure("Quá nhiều gói tin hình");
+        }
+        double endSeconds = 0;
+        for (String line : packets.split("\\R")) {
+            String[] fields = line.strip().split(",");
+            Double pts = number(fields[0]);
+            if (pts != null) {
+                Double duration = fields.length > 1 ? number(fields[1]) : null;
+                endSeconds = Math.max(endSeconds, pts + (duration == null ? 0 : duration));
+            }
+        }
+        if (endSeconds <= 0) {
+            throw new ToolFailure("Không đọc được thời lượng video");
+        }
+        return (int) Math.round(endSeconds * 1000);
+    }
+
+    private List<String> ffprobe(Path file, String contentType) {
         List<String> command = new ArrayList<>(List.of(properties.ffprobePath(), "-v", "error",
                 "-protocol_whitelist", "file"));
-        command.addAll(demuxer(input, contentType));
-        command.addAll(List.of("-show_entries", "stream=codec_type,width,height:format=duration", "-of", "json",
-                fileUrl(input)));
-        return parseProbe(run(command));
+        command.addAll(demuxer(file, contentType));
+        return command;
     }
 
     /** Ảnh JPEG cạnh dài tối đa maxLongSide, không phóng to ảnh nhỏ (DB mục 6). */
@@ -67,7 +126,7 @@ public class FfmpegTranscoder {
         command.addAll(demuxer(input, contentType));
         command.addAll(List.of("-i", fileUrl(input), "-frames:v", "1", "-vf", fitLongSide(maxLongSide)));
         command.addAll(jpegOutput(outputJpeg));
-        run(command);
+        run(command, MAX_LOG_BYTES);
         return still(outputJpeg);
     }
 
@@ -87,8 +146,8 @@ public class FfmpegTranscoder {
                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
                 "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", "-map_metadata", "-1",
                 "-f", "mp4", "-y", fileUrl(outputMp4)));
-        run(command);
-        return probe(outputMp4, "video/mp4");
+        run(command, MAX_LOG_BYTES);
+        return inspect(outputMp4, "video/mp4");
     }
 
     /** Khung hình đầu của video đã xử lý, JPEG cạnh dài tối đa maxLongSide (thumbnail video, DB mục 6). */
@@ -97,13 +156,13 @@ public class FfmpegTranscoder {
         command.addAll(demuxer(videoMp4, "video/mp4"));
         command.addAll(List.of("-i", fileUrl(videoMp4), "-frames:v", "1", "-vf", fitLongSide(maxLongSide)));
         command.addAll(jpegOutput(outputJpeg));
-        run(command);
+        run(command, MAX_LOG_BYTES);
         return still(outputJpeg);
     }
 
     // ffprobe báo ảnh dài bằng một khung hình (vài chục mili giây); ảnh thì không có thời lượng.
     private MediaInfo still(Path outputJpeg) {
-        MediaInfo info = probe(outputJpeg, "image/jpeg");
+        MediaInfo info = inspect(outputJpeg, "image/jpeg");
         return new MediaInfo(info.width(), info.height(), null);
     }
 
@@ -147,7 +206,7 @@ public class FfmpegTranscoder {
         try {
             root = jsonMapper.readTree(json);
         } catch (JacksonException malformed) {
-            throw new UnreadableMediaException("ffprobe trả kết quả không đọc được", malformed);
+            throw new ToolFailure("ffprobe trả kết quả không đọc được", malformed);
         }
         for (JsonNode stream : root.path("streams")) {
             if ("video".equals(stream.path("codec_type").asString(""))
@@ -156,23 +215,25 @@ public class FfmpegTranscoder {
                         durationMs(root.path("format").path("duration").asString("")));
             }
         }
-        throw new UnreadableMediaException("Không có luồng hình");
+        throw new ToolFailure("Không có luồng hình");
     }
 
     private static Integer durationMs(String seconds) {
+        Double value = number(seconds);
+        return value == null ? null : (int) Math.round(value * 1000);
+    }
+
+    // ffprobe ghi "N/A" hoặc bỏ trống khi không có giá trị (ảnh không có thời lượng, gói tin thiếu mốc thời gian).
+    private static Double number(String text) {
         try {
-            return (int) Math.round(Double.parseDouble(seconds) * 1000);
-        } catch (NumberFormatException notVideo) {
-            // Ảnh không có thời lượng ("N/A" hoặc không có trường).
+            return Double.parseDouble(text);
+        } catch (NumberFormatException notANumber) {
             return null;
         }
     }
 
-    /**
-     * Chạy lệnh, trả stdout. Mã thoát khác 0 nghĩa là ffmpeg không đọc hay chuyển được file:
-     * với đầu vào đã ép demuxer, đó là lỗi của file nên không thử lại. Không chạy được lệnh hoặc quá giờ là lỗi tạm thời.
-     */
-    private String run(List<String> command) {
+    /** Chạy lệnh, trả stdout (tối đa stdoutLimit byte). Mã thoát khác 0 ném {@link ToolFailure}. */
+    private String run(List<String> command, int stdoutLimit) {
         Process process;
         try {
             process = new ProcessBuilder(command).start();
@@ -180,17 +241,18 @@ public class FfmpegTranscoder {
             throw new UncheckedIOException("Không chạy được " + command.getFirst(), exception);
         }
         // Đọc stdout và stderr song song để tiến trình không bị treo vì đầy bộ đệm.
-        CompletableFuture<String> stdout = CompletableFuture.supplyAsync(() -> readLimited(process.getInputStream()),
+        CompletableFuture<String> stdout = CompletableFuture.supplyAsync(() -> readLimited(process.getInputStream(), stdoutLimit),
                 OUTPUT_READERS);
-        CompletableFuture<String> stderr = CompletableFuture.supplyAsync(() -> readLimited(process.getErrorStream()),
+        CompletableFuture<String> stderr = CompletableFuture.supplyAsync(() -> readLimited(process.getErrorStream(), MAX_LOG_BYTES),
                 OUTPUT_READERS);
         try {
             if (!process.waitFor(properties.processTimeout().toMillis(), TimeUnit.MILLISECONDS)) {
-                process.destroyForcibly();
+                // Chờ tiến trình dừng hẳn để bên gọi xóa thư mục tạm khi không còn ai giữ file.
+                process.destroyForcibly().waitFor(10, TimeUnit.SECONDS);
                 throw new IllegalStateException("Quá thời gian chạy " + command.getFirst());
             }
             if (process.exitValue() != 0) {
-                throw new UnreadableMediaException(command.getFirst() + " thoát mã " + process.exitValue() + ": "
+                throw new ToolFailure(command.getFirst() + " thoát mã " + process.exitValue() + ": "
                         + stderr.get(5, TimeUnit.SECONDS).strip());
             }
             return stdout.get(5, TimeUnit.SECONDS);
@@ -203,20 +265,32 @@ public class FfmpegTranscoder {
         }
     }
 
-    // Giữ tối đa MAX_LOG_BYTES, phần còn lại đọc bỏ: file hỏng có thể làm ffmpeg in rất nhiều lỗi.
-    private static String readLimited(InputStream stream) {
+    // Giữ tối đa limit byte, phần còn lại đọc bỏ: file hỏng có thể làm ffmpeg in rất nhiều lỗi.
+    private static String readLimited(InputStream stream, int limit) {
         try (stream) {
-            byte[] kept = new byte[MAX_LOG_BYTES];
+            byte[] kept = new byte[limit];
             int length = 0;
             byte[] buffer = new byte[8192];
             for (int read; (read = stream.read(buffer)) != -1; ) {
-                int copy = Math.min(read, MAX_LOG_BYTES - length);
+                int copy = Math.min(read, limit - length);
                 System.arraycopy(buffer, 0, kept, length, copy);
                 length += copy;
             }
             return new String(kept, 0, length, StandardCharsets.UTF_8);
         } catch (IOException exception) {
             throw new UncheckedIOException(exception);
+        }
+    }
+
+    /** ffmpeg hoặc ffprobe chạy lỗi. Mặc định là lỗi tạm thời; {@link #probe} đổi thành lỗi của file. */
+    private static final class ToolFailure extends RuntimeException {
+
+        ToolFailure(String message) {
+            super(message);
+        }
+
+        ToolFailure(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

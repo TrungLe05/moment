@@ -245,7 +245,7 @@ Presigned URL tải lên ký cả `Content-Type` và dung lượng khai báo: cl
 - `media` chỉ có khi `status` là `READY`; URL hết hạn sau 10 phút, client gọi lại API để lấy URL mới khi cần.
 - Với video, `videoUrl` có giá trị và client vẽ `layers` đè lên lúc phát; với ảnh, `displayUrl` là bản đã ghép sẵn.
 - `myReaction` chỉ có khi người xem không phải chủ.
-- `ownerView` chỉ có khi người xem là chủ: `{ "audience": "SELECTED", "recipientCount": 3, "reactionCount": 2, "failureReason": null }`. Khi `status` là `FAILED`, `failureReason` là một trong: `MEDIA_UNREADABLE` (file không đọc được theo định dạng đã khai báo), `VIDEO_TOO_LONG` (video quá 60 giây, BR-10), `PROCESSING_ERROR` (lỗi khác sau 3 lần thử); client hiện thông báo theo mã này (D-033).
+- `ownerView` chỉ có khi người xem là chủ: `{ "audience": "SELECTED", "recipientCount": 3, "reactionCount": 2, "failureReason": null }`. Khi `status` là `FAILED`, `failureReason` là một trong: `MEDIA_UNREADABLE` (file không đọc được theo định dạng đã khai báo, hoặc lớn hơn 50 megapixel), `VIDEO_TOO_LONG` (video quá 60 giây, BR-10), `PROCESSING_ERROR` (lỗi khác sau 3 lần thử); client hiện thông báo theo mã này (D-033).
 
 ## 5. Luồng đăng một khoảnh khắc
 

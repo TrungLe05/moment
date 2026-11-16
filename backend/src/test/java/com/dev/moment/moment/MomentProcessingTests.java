@@ -14,16 +14,20 @@ import com.dev.moment.support.ApiTestClient;
 import com.dev.moment.support.MutableClock;
 import com.dev.moment.support.RecordingEmailSender;
 import com.dev.moment.support.TestMedia;
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.imageio.ImageIO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -125,6 +129,36 @@ class MomentProcessingTests {
     }
 
     @Test
+    void shouldStartClipAtRequestedPoint() throws Exception {
+        Posted posted = postVideo(TestMedia.redThenBlueVideo(4, 10), "UPLOAD", 4500);
+
+        worker.drain();
+
+        // Khung hình đầu của đoạn cắt rơi vào phần xanh dương, không phải phần đỏ ở đầu video gốc.
+        int center = centerPixel(variants(posted.id()).get("THUMBNAIL"));
+        int red = (center >> 16) & 0xff;
+        int blue = center & 0xff;
+        assertThat(blue).isGreaterThan(200);
+        assertThat(red).isLessThan(60);
+    }
+
+    // US-21: video quay trên trình duyệt là WebM không ghi thời lượng; worker vẫn đo được và xử lý.
+    @Test
+    void shouldProcessWebmWithoutDurationHeader() throws Exception {
+        byte[] webm = TestMedia.webmWithoutDuration(4);
+        Map<String, Object> body = baseBody("VIDEO", "CAMERA");
+        body.put("files", List.of(file("ORIGINAL", "video/webm", webm.length)));
+        Posted posted = publish(body, Map.of("ORIGINAL", webm));
+
+        worker.drain();
+
+        Map<String, Object> moment = moment(posted.id());
+        assertThat(moment.get("status")).as("failure_reason=" + moment.get("failure_reason")).isEqualTo("READY");
+        assertThat((Integer) moment.get("duration_ms")).isCloseTo(4000, within(200));
+        assertFile(posted.id(), "VIDEO", "video/mp4", 320, 240);
+    }
+
+    @Test
     void shouldScalePortraitVideoByShortSideAndKeepShortClips() throws Exception {
         Posted posted = postVideo(TestMedia.video(1080, 1920, 3, false), "CAMERA", null);
 
@@ -166,6 +200,17 @@ class MomentProcessingTests {
 
         assertFailedWithoutRetry(posted.id(), "MEDIA_UNREADABLE");
         assertThat(variants(posted.id())).containsOnlyKeys("ORIGINAL", "COMPOSED");
+    }
+
+    // Ảnh nén nhỏ nhưng kích thước khổng lồ có thể làm worker tốn hàng GB RAM khi giải mã (D-033).
+    @Test
+    void shouldRejectComposedPhotoOver50Megapixels() throws Exception {
+        Posted posted = postPhoto(TestMedia.image(320, 240, "jpg"), TestMedia.solidImage(8000, 7000, "jpg"),
+                "image/jpeg");
+
+        worker.drain();
+
+        assertFailedWithoutRetry(posted.id(), "MEDIA_UNREADABLE");
     }
 
     // Playlist HLS đội lốt mp4 từng khiến ffmpeg đọc file cục bộ hoặc gọi URL ngoài. ffmpeg bản mới tự chặn,
@@ -369,6 +414,19 @@ class MomentProcessingTests {
         Map<String, Object> job = job(momentId);
         assertThat(job.get("status")).isEqualTo("FAILED");
         assertThat(job.get("attempts")).isEqualTo(1);
+    }
+
+    private int centerPixel(String objectKey) throws Exception {
+        Path directory = Files.createTempDirectory("moment-test-thumb-");
+        Path file = directory.resolve("thumbnail.jpg");
+        try {
+            storage.download(objectKey, file);
+            BufferedImage image = ImageIO.read(file.toFile());
+            return image.getRGB(image.getWidth() / 2, image.getHeight() / 2);
+        } finally {
+            Files.deleteIfExists(file);
+            Files.deleteIfExists(directory);
+        }
     }
 
     private Map<String, Object> job(String momentId) {
