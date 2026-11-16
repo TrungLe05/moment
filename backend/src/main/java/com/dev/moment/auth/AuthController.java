@@ -2,7 +2,7 @@ package com.dev.moment.auth;
 
 import com.dev.moment.common.ratelimit.RateLimit;
 import com.dev.moment.common.ratelimit.RateLimiter;
-import com.dev.moment.user.UserService;
+import com.dev.moment.user.UserResponseFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Duration;
@@ -32,14 +32,14 @@ class AuthController {
     private static final String DEFAULT_LOCALE = "vi";
 
     private final AuthService authService;
-    private final UserService userService;
+    private final UserResponseFactory userResponseFactory;
     private final RateLimiter rateLimiter;
     private final AuthProperties properties;
 
-    AuthController(AuthService authService, UserService userService, RateLimiter rateLimiter,
+    AuthController(AuthService authService, UserResponseFactory userResponseFactory, RateLimiter rateLimiter,
             AuthProperties properties) {
         this.authService = authService;
-        this.userService = userService;
+        this.userResponseFactory = userResponseFactory;
         this.rateLimiter = rateLimiter;
         this.properties = properties;
     }
@@ -122,7 +122,7 @@ class AuthController {
     private ResponseEntity<AuthResponses.Login> sessionResponse(AuthService.AuthSession session, boolean nativeClient) {
         AuthResponses.Login response = new AuthResponses.Login(session.accessToken().token(),
                 session.accessToken().expiresInSeconds(), nativeClient ? session.refreshToken() : null,
-                userService.toResponse(session.account()), session.newUser());
+                userResponseFactory.toResponse(session.account()), session.newUser());
         return withRefreshCookie(ResponseEntity.ok(), nativeClient, session.refreshToken()).body(response);
     }
 

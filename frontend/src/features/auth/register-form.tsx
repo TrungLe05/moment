@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { AuthLayout, StatusMessage } from "@/components/auth-layout";
 import { FormField } from "@/components/form-field";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { errorText, fieldErrorText } from "@/i18n/error-text";
 import { useI18n } from "@/i18n/I18nProvider";
 import { accountApi } from "@/lib/api/account";
+import { safeReturnPath, withReturnPath } from "@/lib/return-path";
 import { useAsyncAction } from "@/lib/use-async-action";
 
 /** US-01: đăng ký xong thì báo kiểm tra hộp thư. */
@@ -16,6 +18,8 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const register = useAsyncAction(accountApi.register);
+  const next = safeReturnPath(useSearchParams().get("next"));
+  const loginHref = next ? withReturnPath("/login", next) : "/login";
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,7 +29,7 @@ export function RegisterForm() {
   if (register.done) {
     return (
       <AuthLayout title={t.register.checkInboxTitle} description={t.register.checkInboxBody}>
-        <Link href="/login" className="text-sm underline underline-offset-4">
+        <Link href={loginHref} className="text-sm underline underline-offset-4">
           {t.common.backToLogin}
         </Link>
       </AuthLayout>
@@ -50,7 +54,7 @@ export function RegisterForm() {
       </form>
       <p className="text-sm">
         {t.register.haveAccount}{" "}
-        <Link href="/login" className="underline underline-offset-4">
+        <Link href={loginHref} className="underline underline-offset-4">
           {t.register.toLogin}
         </Link>
       </p>

@@ -126,9 +126,9 @@ Chi tiết:
 | GET | `/friends` | Có | Danh sách bạn bè | US-12 |
 | DELETE | `/friends/{userId}` | Có | Hủy kết bạn | US-13 |
 
-- `GET /invites/me`, `POST /invites/me/rotate` → `200 { "code": "k7Q2mX9a", "url": "https://<tên-miền>/invite/k7Q2mX9a" }`. Mã QR do client tạo từ `url`.
+- `GET /invites/me`, `POST /invites/me/rotate` → `200 { "code": "k7Q2mX9a", "url": "https://<tên-miền>/invite?code=k7Q2mX9a" }`. Mã gồm 8 chữ và số; `GET /invites/me` tạo mã lần đầu nếu chưa có. Link dùng tham số `code` để frontend xuất tĩnh mở được trên mọi host (D-032). Mã QR do client tạo từ `url`.
 - `GET /invites/{code}` → `200 { "inviter": { "username", "displayName", "avatarUrl" } }`. Lỗi: `INVITE_INVALID` (404).
-- `POST /invites/{code}/accept` → `200 { "friend": <user tóm tắt>, "alreadyFriends": false }`; đã là bạn → `200` với `"alreadyFriends": true`. Lỗi: `INVITE_INVALID` (404), `INVITE_SELF` (422), `FRIEND_LIMIT_REACHED` (422, trường `detail` cho biết bên nào đủ 15).
+- `POST /invites/{code}/accept` → `200 { "friend": <user tóm tắt>, "alreadyFriends": false }`; đã là bạn → `200` với `"alreadyFriends": true`. Lỗi: `INVITE_INVALID` (404), `INVITE_SELF` (422), `FRIEND_LIMIT_REACHED` (422, trường `detail` cho biết bên nào đủ 15: người bấm kết bạn hay người mời). Thứ tự kiểm tra: mã sai → tự mời mình → đã là bạn → giới hạn 15.
 - `GET /friends` → `200 { "items": [ { "id", "username", "displayName", "avatarUrl", "friendsSince" } ], "count": 12, "limit": 15 }`. Không phân trang vì tối đa 15.
 - `DELETE /friends/{userId}` → `204`. Không phải bạn → `404 NOT_FOUND`.
 

@@ -8,6 +8,8 @@ export class ApiError extends Error {
     readonly code: string,
     readonly fieldErrors: FieldError[] = [],
     readonly retryAfterSeconds: number | null = null,
+    /** Câu giải thích của server; chỉ để hiển thị, không dùng để rẽ nhánh xử lý. */
+    readonly detail: string | null = null,
   ) {
     super(code);
     this.name = "ApiError";
@@ -36,5 +38,6 @@ export function apiErrorFromProblem(status: number, body: unknown, retryAfter: s
   const code = isRecord(body) && typeof body.code === "string" ? body.code : "INTERNAL_ERROR";
   const errors = isRecord(body) ? toFieldErrors(body.errors) : [];
   const retrySeconds = retryAfter !== null && /^\d+$/.test(retryAfter) ? Number(retryAfter) : null;
-  return new ApiError(status, code, errors, retrySeconds);
+  const detail = isRecord(body) && typeof body.detail === "string" ? body.detail : null;
+  return new ApiError(status, code, errors, retrySeconds, detail);
 }

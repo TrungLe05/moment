@@ -16,9 +16,14 @@ export function HomeView() {
       <h1 className="text-3xl font-semibold">{t.appName}</h1>
       <p>{format(t.home.greeting, { name })}</p>
       <p className="text-sm text-muted-foreground">{t.home.comingSoon}</p>
-      <Link href="/settings" className="text-sm underline underline-offset-4">
-        {t.home.settings}
-      </Link>
+      <nav className="flex gap-4 text-sm">
+        <Link href="/friends" className="underline underline-offset-4">
+          {t.home.friends}
+        </Link>
+        <Link href="/settings" className="underline underline-offset-4">
+          {t.home.settings}
+        </Link>
+      </nav>
     </main>
   );
 }

@@ -22,21 +22,23 @@ import org.springframework.web.bind.annotation.RestController;
 class UserController {
 
     private final UserService userService;
+    private final UserResponseFactory userResponseFactory;
     private final RateLimiter rateLimiter;
 
-    UserController(UserService userService, RateLimiter rateLimiter) {
+    UserController(UserService userService, UserResponseFactory userResponseFactory, RateLimiter rateLimiter) {
         this.userService = userService;
+        this.userResponseFactory = userResponseFactory;
         this.rateLimiter = rateLimiter;
     }
 
     @GetMapping("/me")
     UserResponse me(@AuthenticationPrincipal Jwt jwt) {
-        return userService.toResponse(requireAccount(CurrentUser.id(jwt)));
+        return userResponseFactory.toResponse(requireAccount(CurrentUser.id(jwt)));
     }
 
     @PatchMapping("/me")
     UserResponse update(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UpdateProfileRequest request) {
-        return userService.toResponse(userService.updateProfile(CurrentUser.id(jwt), request));
+        return userResponseFactory.toResponse(userService.updateProfile(CurrentUser.id(jwt), request));
     }
 
     @GetMapping("/usernames/{username}/availability")

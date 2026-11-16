@@ -78,9 +78,9 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-121 | Mã mời, link, QR, tạo mã mới | Must / Should | Chưa làm | US-10 (Must), US-14 (Should), BR-04 |
-| T-122 | Trang mời và kết bạn, giới hạn 15 có khóa theo thứ tự id | Must | Chưa làm | US-11, BR-05, BR-06 |
-| T-123 | Danh sách bạn bè (x/15) và hủy kết bạn | Must | Chưa làm | US-12, US-13, BR-07 |
+| T-121 | Mã mời, link, QR, tạo mã mới | Must / Should | Xong | US-10 (Must), US-14 (Should), BR-04 |
+| T-122 | Trang mời và kết bạn, giới hạn 15 có khóa theo thứ tự id | Must | Xong | US-11, BR-05, BR-06 |
+| T-123 | Danh sách bạn bè (x/15) và hủy kết bạn | Must | Xong | US-12, US-13, BR-07 |
 
 ### E3 · Soạn và đăng khoảnh khắc
 

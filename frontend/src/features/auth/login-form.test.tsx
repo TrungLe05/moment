@@ -22,6 +22,10 @@ vi.mock("./session", () => ({
   useSession: () => ({ startSession }),
 }));
 
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
 }));

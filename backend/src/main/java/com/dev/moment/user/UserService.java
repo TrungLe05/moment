@@ -3,16 +3,20 @@ package com.dev.moment.user;
 import com.dev.moment.common.error.ApiException;
 import com.dev.moment.common.error.ErrorCode;
 import com.dev.moment.common.error.FieldViolation;
-import com.dev.moment.friend.FriendService;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Nghiệp vụ tài khoản và hồ sơ. Gói khác gọi qua service này, không dùng thẳng UserRepository. */
@@ -23,12 +27,10 @@ public class UserService {
     private static final Pattern USERNAME_FORMAT = Pattern.compile("^[a-z0-9._]{3,20}$");
 
     private final UserRepository userRepository;
-    private final FriendService friendService;
     private final Clock clock;
 
-    public UserService(UserRepository userRepository, FriendService friendService, Clock clock) {
+    public UserService(UserRepository userRepository, Clock clock) {
         this.userRepository = userRepository;
-        this.friendService = friendService;
         this.clock = clock;
     }
 
@@ -104,17 +106,42 @@ public class UserService {
         return save(user, ErrorCode.USERNAME_TAKEN).toAccount();
     }
 
+    /**
+     * Khóa dòng users của từng người theo đúng thứ tự trong danh sách, trong transaction của bên gọi.
+     * Bên gọi phải truyền thứ tự cố định để hai transaction ngược chiều không deadlock (BR-06).
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lockInOrder(List<UUID> userIds) {
+        for (UUID userId : userIds) {
+            userRepository.findByIdForUpdate(userId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<UserSummary> findSummary(UUID userId) {
+        return userRepository.findById(userId).map(UserService::toSummary);
+    }
+
+    /** Lấy nhiều user tóm tắt trong một câu truy vấn để tránh N+1. */
+    @Transactional(readOnly = true)
+    public Map<UUID, UserSummary> findSummaries(Collection<UUID> userIds) {
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+        return userRepository.findAllByIdIn(userIds).stream()
+                .map(UserService::toSummary)
+                .collect(Collectors.toMap(UserSummary::id, Function.identity()));
+    }
+
     @Transactional(readOnly = true)
     public boolean isUsernameAvailable(String rawUsername) {
         return !userRepository.existsByUsernameIgnoreCase(normalizeUsername(rawUsername));
     }
 
-    @Transactional(readOnly = true)
-    public UserResponse toResponse(UserAccount account) {
-        // Ảnh đại diện (presigned URL) làm cùng phần tải ảnh đại diện ở T-116.
-        return new UserResponse(account.id(), account.email(), account.username(), account.displayName(), null,
-                account.locale(), account.needsOnboarding(), friendService.countFriends(account.id()),
-                FriendService.FRIEND_LIMIT, account.demo());
+    // Ảnh đại diện (presigned URL) thêm cùng T-116.
+    private static UserSummary toSummary(User user) {
+        UserAccount account = user.toAccount();
+        return new UserSummary(account.id(), account.username(), account.displayName(), null);
     }
 
     private static String normalizeUsername(String rawUsername) {
