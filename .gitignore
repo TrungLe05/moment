@@ -29,3 +29,6 @@ Thumbs.db
 
 # Cấu hình Claude Code riêng từng máy
 .claude/settings.local.json
+
+# Đồ thị code do graphify tạo ở máy (không commit)
+graphify-out/
