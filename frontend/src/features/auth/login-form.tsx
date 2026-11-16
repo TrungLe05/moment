@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState, type FormEvent } from "react";
 import { AuthLayout, StatusMessage } from "@/components/auth-layout";
 import { FormField } from "@/components/form-field";
@@ -9,6 +10,7 @@ import { errorText } from "@/i18n/error-text";
 import { useI18n } from "@/i18n/I18nProvider";
 import { ApiError } from "@/lib/api";
 import { accountApi } from "@/lib/api/account";
+import { safeReturnPath, withReturnPath } from "@/lib/return-path";
 import { useAsyncAction } from "@/lib/use-async-action";
 import { GoogleButton } from "./google-button";
 import { useSession } from "./session";
@@ -17,6 +19,8 @@ import { useSession } from "./session";
 export function LoginForm() {
   const { t, locale } = useI18n();
   const { startSession } = useSession();
+  // Giữ trang cần quay lại (ví dụ trang mời) khi chuyển sang đăng ký.
+  const next = safeReturnPath(useSearchParams().get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -63,7 +67,7 @@ export function LoginForm() {
         </Link>
         <p>
           {t.login.noAccount}{" "}
-          <Link href="/register" className="underline underline-offset-4">
+          <Link href={next ? withReturnPath("/register", next) : "/register"} className="underline underline-offset-4">
             {t.login.toRegister}
           </Link>
         </p>
