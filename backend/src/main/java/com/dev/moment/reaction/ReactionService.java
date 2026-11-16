@@ -6,6 +6,7 @@ import com.dev.moment.common.error.FieldViolation;
 import com.dev.moment.moment.MomentAccessPolicy;
 import com.dev.moment.user.UserService;
 import com.dev.moment.user.UserSummary;
+import java.sql.SQLException;
 import java.time.Clock;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 /** Thả, đổi, gỡ và xem reaction (T-143, API mục 3.5). Quyền xem luôn hỏi qua MomentAccessPolicy (BR-24). */
 @Service
 public class ReactionService {
+
+    // Mã SQLState chuẩn của PostgreSQL cho vi phạm khóa ngoại.
+    private static final String FOREIGN_KEY_VIOLATION = "23503";
 
     private final ReactionRepository reactions;
     private final MomentAccessPolicy accessPolicy;
@@ -46,11 +51,20 @@ public class ReactionService {
         }
         try {
             reactions.upsert(momentId, userId, canonical, clock.instant());
-        } catch (DataIntegrityViolationException deleted) {
-            // Khoảnh khắc bị xóa giữa lúc kiểm tra quyền và lúc ghi (khóa ngoại): coi như không tồn tại.
-            throw new ApiException(ErrorCode.NOT_FOUND);
+        } catch (DataIntegrityViolationException violation) {
+            // Khoảnh khắc bị xóa giữa lúc kiểm tra quyền và lúc ghi (vi phạm khóa ngoại): coi như không tồn tại.
+            // Vi phạm khác (ví dụ CHECK emoji lệch với ReactionEmoji) là lỗi code, để lỗi 500 lộ ra.
+            if (isForeignKeyViolation(violation)) {
+                throw new ApiException(ErrorCode.NOT_FOUND);
+            }
+            throw violation;
         }
         return canonical;
+    }
+
+    private static boolean isForeignKeyViolation(DataIntegrityViolationException violation) {
+        return NestedExceptionUtils.getMostSpecificCause(violation) instanceof SQLException sql
+                && FOREIGN_KEY_VIOLATION.equals(sql.getSQLState());
     }
 
     /** US-32: gỡ reaction của tôi; chưa thả cũng trả thành công (API mục 3.5). */

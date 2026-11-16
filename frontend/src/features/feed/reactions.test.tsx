@@ -114,6 +114,24 @@ describe("Reactions in the feed (US-32, US-33, BR-21 → BR-23)", () => {
     expect(screen.getByRole("button", { name: fireLabel })).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("keeps the latest choice when an earlier request answers last", async () => {
+    feed.mockResolvedValue({ items: [moment()], nextCursor: null });
+    let answerFire: (value: { emoji: string }) => void = () => undefined;
+    react
+      .mockImplementationOnce(() => new Promise((resolve) => (answerFire = resolve)))
+      .mockResolvedValueOnce({ emoji: "❤️" });
+
+    renderFeed();
+    await userEvent.click(await screen.findByRole("button", { name: fireLabel }));
+    await userEvent.click(screen.getByRole("button", { name: heartLabel }));
+    answerFire({ emoji: "🔥" });
+
+    await vi.waitFor(() => expect(react).toHaveBeenCalledTimes(2));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.getByRole("button", { name: heartLabel })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: fireLabel })).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("restores the previous reaction and explains when the request fails", async () => {
     feed.mockResolvedValue({ items: [moment({ myReaction: "🔥" })], nextCursor: null });
     react.mockRejectedValue(new ApiError(0, "NETWORK_ERROR"));

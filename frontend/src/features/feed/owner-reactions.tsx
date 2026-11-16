@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { format } from "@/i18n/messages";
 import { momentsApi, type ReactionItem } from "@/lib/api/moments";
@@ -9,13 +9,17 @@ import { momentsApi, type ReactionItem } from "@/lib/api/moments";
 function useMomentReactions(momentId: string) {
   const [items, setItems] = useState<ReactionItem[] | null>(null);
   const [failed, setFailed] = useState(false);
+  // Mở, đóng, mở nhanh tạo nhiều request; chỉ kết quả của request mới nhất được hiện.
+  const latest = useRef(0);
 
   async function load() {
+    const request = ++latest.current;
     setFailed(false);
     try {
-      setItems(await momentsApi.reactions(momentId));
+      const loaded = await momentsApi.reactions(momentId);
+      if (request === latest.current) setItems(loaded);
     } catch {
-      setFailed(true);
+      if (request === latest.current) setFailed(true);
     }
   }
 
@@ -48,7 +52,8 @@ export function OwnerReactions({ momentId, count }: { momentId: string; count: n
         onClick={toggle}
         className="flex h-11 w-fit items-center rounded-full bg-night-surface px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peach"
       >
-        {format(t.feed.reactionCount, { count: String(count) })}
+        {/* Số lượt lấy theo danh sách vừa tải nếu có, vì số trong feed có thể đã cũ. */}
+        {format(t.feed.reactionCount, { count: String(items?.length ?? count) })}
       </button>
       {open && (
         <div id={listId}>

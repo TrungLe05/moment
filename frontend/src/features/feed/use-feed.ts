@@ -22,6 +22,8 @@ export function useFeed() {
   const [error, setError] = useState<unknown>(null);
   const loading = useRef(true);
   const lastRefresh = useRef(new Map<string, number>());
+  // Lần bấm reaction mới nhất của từng khoảnh khắc: phản hồi về muộn của lần bấm cũ không được ghi đè lựa chọn mới.
+  const reactionRequest = useRef(new Map<string, number>());
 
   const applyPage = useCallback((page: { items: Moment[]; nextCursor: string | null }, append: boolean) => {
     setItems((current) => (append ? appendUnique(current, page.items) : page.items));
@@ -94,14 +96,20 @@ export function useFeed() {
     async (moment: Moment, emoji: ReactionEmoji) => {
       const previous = moment.myReaction;
       const next = previous === emoji ? null : emoji;
+      const request = (reactionRequest.current.get(moment.id) ?? 0) + 1;
+      reactionRequest.current.set(moment.id, request);
+      const isLatest = () => reactionRequest.current.get(moment.id) === request;
       setMyReaction(moment.id, next);
       try {
         if (next === null) {
           await momentsApi.unreact(moment.id);
         } else {
-          setMyReaction(moment.id, (await momentsApi.react(moment.id, next)).emoji);
+          const saved = (await momentsApi.react(moment.id, next)).emoji;
+          if (isLatest()) setMyReaction(moment.id, saved);
         }
       } catch (caught: unknown) {
+        // Chỉ lần bấm mới nhất được trả lại trạng thái cũ; lần cũ hơn đã bị lựa chọn sau thay thế.
+        if (!isLatest()) return;
         setMyReaction(moment.id, previous);
         throw caught;
       }

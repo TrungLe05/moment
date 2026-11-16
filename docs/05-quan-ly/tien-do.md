@@ -30,7 +30,7 @@ Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, c�
 
 - PR #12 (T-142) đã merge vào `develop`. Đã xem feed có dữ liệu thật trên trình duyệt: nhãn, video cắt từ giây 1, tự dừng khi cuộn đi, cuộn dính, dòng hết feed đều đúng. Lần đầu API treo vì `mvnw verify` ghi đè file jar đang chạy; từ giờ chạy thử từ bản sao jar.
 - Backend, test trước (10 test): gói `reaction` với `PUT`, `DELETE /moments/{id}/reaction` và `GET /moments/{id}/reactions`; upsert một câu lệnh (BR-21), chuẩn hóa emoji (D-028), chủ không tự thả (BR-23), quyền xem qua `MomentAccessPolicy.ownerOfViewable` (BR-24), chỉ chủ xem danh sách (BR-22). Đối tượng khoảnh khắc có `myReaction` và `ownerView.reactionCount`, lấy theo lô. Chốt ba chỗ đặc tả chưa nói (D-036). `MomentFixtures` chuyển sang gói `support`. 148 test backend pass.
-- Frontend: thanh 6 emoji dưới thẻ của bạn bè (đổi ngay trên giao diện, lỗi thì trả lại và báo), bấm lại emoji đang chọn thì gỡ; thẻ của mình hiện "X lượt thả cảm xúc", mở ra xem ai thả gì. 6 test mới, 44 test frontend pass; lint, kiểm tra kiểu, build đều qua.
+- Frontend: thanh 6 emoji dưới thẻ của bạn bè (đổi ngay trên giao diện, lỗi thì trả lại và báo), bấm lại emoji đang chọn thì gỡ; thẻ của mình hiện "X lượt thả cảm xúc", mở ra xem ai thả gì. 7 test mới, 45 test frontend pass; lint, kiểm tra kiểu, build đều qua. Tự review sửa: phản hồi reaction về sai thứ tự không ghi đè lựa chọn mới, danh sách của chủ chỉ hiện kết quả request mới nhất và cập nhật số lượt, chỉ vi phạm khóa ngoại mới coi là khoảnh khắc đã xóa.
 - Chạy thật trên trình duyệt: thả 🔥 (PUT 200, tải lại vẫn còn), bấm lại để gỡ (DELETE 204), danh sách của chủ hiện "Minh 😍".
 
 ### 16/11/2026 · T-142 feed
