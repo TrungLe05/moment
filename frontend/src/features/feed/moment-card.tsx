@@ -13,6 +13,12 @@ type Props = {
   onMediaError: (id: string) => void;
 };
 
+// Chữ cái đầu cho ảnh đại diện tạm: tách theo ký tự hiển thị (CLAUDE.md), không cắt đôi emoji hay dấu tiếng Việt.
+function initial(name: string): string {
+  const first = new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(name)[Symbol.iterator]().next();
+  return first.done ? "" : first.value.segment.toUpperCase();
+}
+
 function spanText(t: Messages, span: Span, kind: "posted" | "left"): string {
   const template =
     kind === "posted"
@@ -30,7 +36,7 @@ export function MomentCard({ moment, now, onMediaError }: Props) {
   const ownerName = moment.isMine
     ? t.feed.you
     : (moment.owner.displayName ?? moment.owner.username ?? "");
-  const label = format(t.feed.momentOf, { name: ownerName });
+  const label = moment.isMine ? t.feed.myMoment : format(t.feed.momentOf, { name: ownerName });
   const left = timeLeft(moment.expiresAt, now);
   const aspectRatio = moment.width && moment.height ? `${moment.width} / ${moment.height}` : "3 / 4";
 
@@ -58,10 +64,10 @@ export function MomentCard({ moment, now, onMediaError }: Props) {
         <div className="pointer-events-none absolute inset-x-3.5 top-3.5 flex items-start justify-between gap-2">
           <span className={`${pill} min-w-0`}>
             <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-full bg-peach text-[11px] font-semibold text-peach-ink">
-              {ownerName.slice(0, 1).toUpperCase()}
+              {initial(ownerName)}
             </span>
             <span className="truncate text-[13px] font-semibold">
-              {ownerName} · {spanText(t, postedAgo(moment.createdAt, now), "posted")}
+              {format(t.feed.ownerLine, { name: ownerName, age: spanText(t, postedAgo(moment.createdAt, now), "posted") })}
             </span>
           </span>
           <span className="flex shrink-0 flex-col items-end gap-1.5">

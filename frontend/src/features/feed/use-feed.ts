@@ -31,8 +31,10 @@ export function useFeed() {
   }, []);
 
   useEffect(() => {
-    // Trang đầu; setState chỉ chạy sau khi request xong.
+    // Trang đầu; setState chỉ chạy sau khi request xong. Cờ đang tải gắn với lần chạy này: StrictMode chạy effect
+    // hai lần, request bị hủy không được xóa cờ khi request sau vẫn đang chờ.
     let cancelled = false;
+    loading.current = true;
     momentsApi.feed(null).then(
       (page) => {
         if (!cancelled) applyPage(page, false);
@@ -43,7 +45,7 @@ export function useFeed() {
         setStatus("error");
       },
     ).finally(() => {
-      loading.current = false;
+      if (!cancelled) loading.current = false;
     });
     return () => {
       cancelled = true;

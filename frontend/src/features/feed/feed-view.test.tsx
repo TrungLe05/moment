@@ -75,7 +75,7 @@ describe("FeedView (US-30, US-31)", () => {
     renderFeed();
 
     const card = await screen.findByRole("article", { name: format(t.feed.momentOf, { name: "Minh Anh" }) });
-    expect(card).toHaveTextContent(`Minh Anh · ${format(t.feed.postedHours, { count: "2" })}`);
+    expect(card).toHaveTextContent(format(t.feed.ownerLine, { name: "Minh Anh", age: format(t.feed.postedHours, { count: "2" }) }));
     expect(card).toHaveTextContent(format(t.feed.leftHours, { count: "21" }));
     expect(screen.getByRole("img", { name: "trời hôm nay đẹp quá" })).toHaveAttribute("src", "https://storage.test/display.jpg");
     expect(screen.getByText(t.feed.end)).toBeVisible();
@@ -98,7 +98,20 @@ describe("FeedView (US-30, US-31)", () => {
 
     renderFeed();
 
-    expect(await screen.findByRole("article", { name: format(t.feed.momentOf, { name: t.feed.you }) })).toBeVisible();
+    const card = await screen.findByRole("article", { name: t.feed.myMoment });
+    expect(card).toHaveTextContent(t.feed.you);
+  });
+
+  it("takes the avatar initial by grapheme, not by UTF-16 unit", async () => {
+    feed.mockResolvedValue({
+      items: [moment({ owner: { id: "u3", username: "lan", displayName: "🌸 Lan", avatarUrl: null } })],
+      nextCursor: null,
+    });
+
+    renderFeed();
+
+    const card = await screen.findByRole("article");
+    expect(card.textContent?.startsWith("🌸🌸 Lan")).toBe(true);
   });
 
   it("hides moments whose 24 hours are over without reloading (BR-14)", async () => {
