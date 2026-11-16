@@ -263,6 +263,8 @@ Bucket để riêng tư; client chỉ đọc/ghi qua presigned URL có hạn (gh
 
 Với video, client vẽ lớp trang trí đè lên video lúc phát dựa trên `layers`; không ghép lớp vào video.
 
+Worker (T-132, D-033) xuất `DISPLAY` và `THUMBNAIL` dạng JPEG, không phóng to ảnh nhỏ, bỏ metadata (vị trí GPS). Video không có `trim_start_ms` cắt từ đầu; điểm bắt đầu quá gần cuối thì lùi lại để đoạn cắt đủ 5 giây khi video đủ dài. Video gốc dài quá 60 giây (BR-10), file không đọc được theo định dạng khai báo hay lớn hơn 50 megapixel thì khoảnh khắc sang `FAILED` ngay, không thử lại. Kích thước (`width`, `height`, `duration_ms`) của khoảnh khắc lấy từ `DISPLAY` với ảnh, `VIDEO` với video; mỗi dòng `moment_media` do worker tạo cũng ghi kích thước của file đó.
+
 Khóa file: `moments/{momentId}/{variant}-{uuid}.{ext}` và `avatars/{userId}/{uuid}.webp`. Phần `{uuid}` ngẫu nhiên để không ai đoán được khóa.
 
 ## 7. Truy vấn chính

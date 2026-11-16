@@ -158,7 +158,7 @@ Một VPS, một Docker Compose. Các service (dev đã chốt ở D-009; produc
 | `postgres` | Có | Có, backup hằng ngày |
 | `rustfs` (+ `storage-init` tạo bucket) | Có | Không, dùng Cloudflare R2 |
 | `api` | Chạy từ IDE hoặc container | Container |
-| `worker` | Chạy từ IDE hoặc container | Container có ffmpeg |
+| `worker` | Chạy từ IDE (profile `worker`, cần ffmpeg trong PATH) hoặc container | Container có ffmpeg (stage `worker` của `backend/Dockerfile`, D-034) |
 | Phục vụ frontend tĩnh, TLS, chuyển tiếp `/api` | Next.js dev server | Chưa chọn (Q-021) |
 | Email | `mailpit` (D-008) | Chưa chọn (Q-011) |
 

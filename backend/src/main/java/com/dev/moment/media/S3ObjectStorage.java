@@ -1,6 +1,7 @@
 package com.dev.moment.media;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Collection;
@@ -12,9 +13,11 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
@@ -32,6 +35,9 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 class S3ObjectStorage implements ObjectStorage, AutoCloseable {
 
     private static final int NOT_FOUND = 404;
+    // Tải file tới 50 MB (BR-10) cần lâu hơn timeout chung 10 giây của các lệnh nhỏ.
+    private static final Duration TRANSFER_TIMEOUT = Duration.ofMinutes(2);
+    private static final Duration TRANSFER_ATTEMPT_TIMEOUT = Duration.ofSeconds(45);
 
     private final S3Client client;
     private final S3Presigner presigner;
@@ -100,6 +106,20 @@ class S3ObjectStorage implements ObjectStorage, AutoCloseable {
     }
 
     @Override
+    public void download(String objectKey, Path target) {
+        client.getObject(request -> request.bucket(bucket).key(objectKey)
+                .overrideConfiguration(o -> o.apiCallTimeout(TRANSFER_TIMEOUT)
+                        .apiCallAttemptTimeout(TRANSFER_ATTEMPT_TIMEOUT)), target);
+    }
+
+    @Override
+    public void upload(String objectKey, Path source, String contentType) {
+        client.putObject(request -> request.bucket(bucket).key(objectKey).contentType(contentType)
+                .overrideConfiguration(o -> o.apiCallTimeout(TRANSFER_TIMEOUT)
+                        .apiCallAttemptTimeout(TRANSFER_ATTEMPT_TIMEOUT)), RequestBody.fromFile(source));
+    }
+
+    @Override
     public void deleteAll(Collection<String> objectKeys) {
         if (objectKeys.isEmpty()) {
             return;
@@ -107,7 +127,13 @@ class S3ObjectStorage implements ObjectStorage, AutoCloseable {
         List<ObjectIdentifier> identifiers = objectKeys.stream()
                 .map(key -> ObjectIdentifier.builder().key(key).build())
                 .toList();
-        client.deleteObjects(request -> request.bucket(bucket).delete(delete -> delete.objects(identifiers)));
+        DeleteObjectsResponse response = client.deleteObjects(
+                request -> request.bucket(bucket).delete(delete -> delete.objects(identifiers)));
+        // DeleteObjects báo lỗi từng khóa trong body thay vì ném exception; còn lỗi thì ném để việc xóa được thử lại.
+        if (response.hasErrors() && !response.errors().isEmpty()) {
+            throw new IllegalStateException("Không xóa được " + response.errors().size() + " file, mã đầu tiên: "
+                    + response.errors().getFirst().code());
+        }
     }
 
     @Override

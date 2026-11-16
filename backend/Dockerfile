@@ -1,5 +1,6 @@
-# Image backend (API). Build từ thư mục backend/: docker build -t moment-backend .
-# Container worker có ffmpeg sẽ thêm khi chốt ADR 0003 (Q-009, T-132).
+# Image backend. Build từ thư mục backend/:
+#   API:    docker build -t moment-backend .
+#   Worker: docker build --target worker -t moment-worker .   (có ffmpeg, chạy profile worker, ADR 0003)
 
 # --- Build: biên dịch và đóng gói jar ---
 FROM eclipse-temurin:25-jdk-alpine AS build
@@ -14,7 +15,23 @@ RUN --mount=type=cache,target=/root/.m2 sh ./mvnw -B -q -DskipTests package \
     && mkdir -p target/extracted \
     && java -Djarmode=tools -jar target/moment-*.jar extract --layers --launcher --destination target/extracted
 
-# --- Runtime: chỉ JRE, chạy bằng user không phải root ---
+# --- Worker: thêm ffmpeg, chạy profile worker (ARCHITECTURE.md mục 2) ---
+FROM eclipse-temurin:25-jre-alpine AS worker
+RUN apk add --no-cache ffmpeg \
+    && addgroup -S moment && adduser -S -G moment moment
+WORKDIR /app
+COPY --from=build /workspace/target/extracted/dependencies/ ./
+COPY --from=build /workspace/target/extracted/spring-boot-loader/ ./
+COPY --from=build /workspace/target/extracted/snapshot-dependencies/ ./
+COPY --from=build /workspace/target/extracted/application/ ./
+USER moment
+ENV SPRING_PROFILES_ACTIVE=worker
+EXPOSE 8090
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:8090/actuator/health/liveness || exit 1
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "org.springframework.boot.loader.launch.JarLauncher"]
+
+# --- API (mặc định, stage cuối): chỉ JRE, chạy bằng user không phải root, không có ffmpeg ---
 FROM eclipse-temurin:25-jre-alpine
 RUN addgroup -S moment && adduser -S -G moment moment
 WORKDIR /app

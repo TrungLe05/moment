@@ -8,14 +8,16 @@ Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Code nằm trên 4 PR nối tiếp nhau, chưa merge vào `develop`. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-**Việc kế tiếp:** media worker (T-132), quyền xem và chi tiết khoảnh khắc (T-141), ảnh đại diện (T-116).
+Đã có tạo khoảnh khắc (T-131) và media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`).
+
+**Việc kế tiếp:** quyền xem và chi tiết khoảnh khắc (T-141), feed (T-142), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 19 / 40 | Nền tảng và E1 gần xong; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 21 / 40 | Nền tảng, E1, E2 gần xong; tạo và xử lý khoảnh khắc xong (T-131, T-132); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -23,6 +25,15 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 16/11/2026 · T-132 media worker
+
+- Viết test trước (22 test, ffmpeg + PostgreSQL + RustFS thật) rồi code. Ảnh: `DISPLAY` 1440 px và `THUMBNAIL` 480 px từ `COMPOSED`, không phóng to. Video: H.264 + AAC, cạnh ngắn 720, đúng 5 giây từ `trimStartMs`, thumbnail từ khung đầu; video gốc xóa qua việc `DELETE_OBJECTS`.
+- Hàng đợi: lấy việc bằng `FOR UPDATE SKIP LOCKED` (có test hai worker), lỗi tạm thời thử lại sau 15 giây rồi 60 giây, lần thứ 3 lỗi thì `FAILED`; lỗi của file đánh dấu `FAILED` ngay (D-033). Tự review PR #10: sửa WebM không ghi thời lượng (video quay trên trình duyệt) bị coi là hỏng, chỉ coi là lỗi của file khi ffprobe đọc không được, giới hạn 50 megapixel, chờ ffmpeg dừng hẳn khi quá giờ, test kiểm tra đúng điểm bắt đầu cắt. Khoảnh khắc bị xóa hay hết hạn giữa chừng thì không sống lại, file vừa tạo bị dọn.
+- Bảo mật ffmpeg: ép demuxer theo Content-Type, chỉ cho giao thức `file`, bỏ metadata, có timeout.
+- Profile: mặc định `api`, `worker` bật lịch hỏi hàng đợi (T-102); Dockerfile có stage `worker` cài ffmpeg; CI cài ffmpeg bằng apt (D-034). Đã chạy thử jar với profile `worker` trên Compose: health UP, việc chèn tay được xử lý trong vòng 3 giây. 116 test backend pass.
+- Máy dev đã cài ffmpeg 9.0.2 qua scoop.
+- Chưa làm: dọn việc `RUNNING` bị kẹt (T-161), compose production chạy container worker (T-164), giao diện hiện `failureReason` (T-137).
 
 ### 16/11/2026 · T-131 tạo khoảnh khắc
 

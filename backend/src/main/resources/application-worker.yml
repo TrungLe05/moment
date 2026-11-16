@@ -1,0 +1,9 @@
+# Profile worker (ADR 0003): cùng ứng dụng với API, chạy trong container riêng có ffmpeg.
+# Worker vẫn mở cổng HTTP cho health check của container, nhưng không publish cổng ra ngoài (ARCHITECTURE.md mục 6).
+server:
+  port: ${WORKER_PORT:8090}
+
+moment:
+  worker:
+    # Khoảng nghỉ giữa hai lượt hỏi hàng đợi khi không còn việc.
+    poll-interval: PT1S
