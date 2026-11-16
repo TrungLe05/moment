@@ -26,6 +26,9 @@ vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
 }));
 
+// Mật khẩu test sinh lúc chạy để không có chuỗi giống mật khẩu nằm cứng trong repo.
+const testPassword = `pw-${crypto.randomUUID()}`;
+
 function renderForm() {
   // jsdom báo ngôn ngữ en-US nên giao diện hiện tiếng Anh.
   return render(
@@ -48,10 +51,10 @@ describe("LoginForm (US-03)", () => {
     renderForm();
 
     await userEvent.type(screen.getByLabelText(messages.en.common.email), "a@b.co");
-    await userEvent.type(screen.getByLabelText(messages.en.common.password), "matkhau-123");
+    await userEvent.type(screen.getByLabelText(messages.en.common.password), testPassword);
     await userEvent.click(screen.getByRole("button", { name: messages.en.login.submit }));
 
-    expect(login).toHaveBeenCalledWith("a@b.co", "matkhau-123");
+    expect(login).toHaveBeenCalledWith("a@b.co", testPassword);
     expect(startSession).toHaveBeenCalledWith(response);
   });
 
@@ -60,7 +63,7 @@ describe("LoginForm (US-03)", () => {
     renderForm();
 
     await userEvent.type(screen.getByLabelText(messages.en.common.email), "a@b.co");
-    await userEvent.type(screen.getByLabelText(messages.en.common.password), "wrong-password");
+    await userEvent.type(screen.getByLabelText(messages.en.common.password), testPassword);
     await userEvent.click(screen.getByRole("button", { name: messages.en.login.submit }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(messages.en.errors.INVALID_CREDENTIALS);
@@ -73,7 +76,7 @@ describe("LoginForm (US-03)", () => {
     renderForm();
 
     await userEvent.type(screen.getByLabelText(messages.en.common.email), "a@b.co");
-    await userEvent.type(screen.getByLabelText(messages.en.common.password), "matkhau-123");
+    await userEvent.type(screen.getByLabelText(messages.en.common.password), testPassword);
     await userEvent.click(screen.getByRole("button", { name: messages.en.login.submit }));
     await userEvent.click(await screen.findByRole("button", { name: messages.en.login.resendVerification }));
 

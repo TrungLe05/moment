@@ -24,6 +24,13 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
 
+### 16/11/2026 · Sửa cảnh báo GitGuardian về giá trị giả trong test
+
+- GitGuardian báo 5 chỗ ở PR #3 và 2 chỗ ở PR #4: khóa JWT và mật khẩu viết cứng trong test, không có secret thật.
+- Theo quy ước nhánh (D-012), tách nhánh fix từ từng nhánh lỗi: PR #5 vào nhánh của #3 (khóa JWT lấy từ `${random.value}`, mật khẩu test sinh lúc chạy), PR #6 vào nhánh của #4 (mật khẩu test sinh lúc chạy). 57 test backend, 16 test frontend pass.
+- Commit gốc trong #3, #4 vẫn chứa chuỗi cũ nên check GitGuardian của hai PR đó còn đỏ cho tới khi chủ dự án xử lý cảnh báo trên GitGuardian (hoặc viết lại lịch sử nhánh).
+- Thứ tự merge: #1 → #2 → #5 vào nhánh #3 → #3 → #6 vào nhánh #4 → #4.
+
 ### 16/11/2026 · Nền tảng backend, API và giao diện tài khoản E1
 
 - PR #2: migration `V1__init.sql` (T-105), hạ tầng chung `common` (T-106). PR #3: API tài khoản (T-111 → T-115, T-117, T-119, một phần T-116), 57 test backend pass. PR #4: nền tảng frontend (T-103, T-107) và giao diện tài khoản, 16 test frontend pass. Bốn PR nối tiếp nhau (#2 trên #1, #3 trên #2, #4 trên #3).
