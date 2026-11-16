@@ -196,4 +196,4 @@ MVP chạy **một instance API**, nên job `@Scheduled` và bộ đếm giới 
 | --- | --- | --- |
 | [0001](docs/04-quyet-dinh/0001-web-desktop-truoc-san-sang-capacitor.md) | Web desktop trước, code sẵn sàng đóng gói Capacitor | Đã chấp nhận |
 | [0002](docs/04-quyet-dinh/0002-luu-anh-goc-va-lop-trang-tri-json.md) | Lưu ảnh gốc và lớp trang trí JSON tách riêng | Đã chấp nhận |
-| [0003](docs/04-quyet-dinh/0003-hang-doi-bang-bang-postgresql.md) | Hàng đợi việc nền bằng bảng PostgreSQL | Đề xuất (Q-009) |
+| [0003](docs/04-quyet-dinh/0003-hang-doi-bang-bang-postgresql.md) | Hàng đợi việc nền bằng bảng PostgreSQL | Đã chấp nhận (D-022) |

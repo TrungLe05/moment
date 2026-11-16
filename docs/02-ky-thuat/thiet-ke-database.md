@@ -1,8 +1,8 @@
 # Thiết kế database
 
-Phiên bản: bản nháp 1 · Cập nhật: 16/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) (mã BR-xx trỏ tới quy tắc nghiệp vụ trong đó)
+Phiên bản: bản chốt 1 · Cập nhật: 16/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) (mã BR-xx trỏ tới quy tắc nghiệp vụ trong đó)
 
-MVP dùng một cơ sở dữ liệu PostgreSQL 16 với 10 bảng. File ảnh/video nằm trong object storage; database chỉ giữ khóa của file. Hàng đợi xử lý media cũng là một bảng PostgreSQL, nên không cần thêm message broker.
+MVP dùng một cơ sở dữ liệu PostgreSQL 16 với 11 bảng (tính cả hàng đợi `media_jobs`). File ảnh/video nằm trong object storage; database chỉ giữ khóa của file. Hàng đợi xử lý media cũng là một bảng PostgreSQL, nên không cần thêm message broker.
 
 ## 1. Sơ đồ quan hệ
 
@@ -121,7 +121,6 @@ CREATE TABLE moments (
     status         varchar(12) NOT NULL DEFAULT 'DRAFT'
                    CHECK (status IN ('DRAFT', 'PROCESSING', 'READY', 'FAILED', 'EXPIRED')),
     caption        text,
-    note           text,
     layers         jsonb       NOT NULL DEFAULT '[]'::jsonb,   -- lớp trang trí, xem phần 5
     layers_version smallint    NOT NULL DEFAULT 1,
     trim_start_ms  integer     CHECK (trim_start_ms >= 0),     -- chỉ cho video tải lên dài hơn 5 giây
@@ -135,7 +134,6 @@ CREATE TABLE moments (
     processed_at   timestamptz,
     -- Giới hạn an toàn theo độ dài chuỗi; giới hạn theo grapheme (BR-11) kiểm tra ở tầng ứng dụng
     CONSTRAINT moments_caption_len CHECK (char_length(caption) <= 400),
-    CONSTRAINT moments_note_len    CHECK (char_length(note) <= 2000),
     CONSTRAINT moments_kept        CHECK ((mode = 'KEPT') = (kept_at IS NOT NULL))
 );
 CREATE INDEX moments_owner_created_idx ON moments (owner_id, created_at DESC, id DESC);
@@ -173,7 +171,7 @@ CREATE TABLE moment_media (
 CREATE TABLE reactions (
     moment_id  uuid NOT NULL REFERENCES moments (id) ON DELETE CASCADE,
     user_id    uuid NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    emoji      varchar(16) NOT NULL CHECK (emoji IN ('❤️', '😍', '🔥', '😂', '😮', '😢')),
+    emoji      varchar(16) NOT NULL CHECK (emoji IN ('❤️', '😍', '🔥', '😂', '😮', '😢')),  -- server chuẩn hóa trước khi lưu (D-028)
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (moment_id, user_id)
@@ -207,6 +205,7 @@ stateDiagram-v2
     PROCESSING --> READY: worker xử lý xong
     PROCESSING --> FAILED: worker lỗi sau 3 lần thử
     FAILED --> PROCESSING: chủ bấm thử lại
+    FAILED --> [*]: quá 7 ngày chưa thử lại (job xóa, D-029)
     READY --> EXPIRED: mode = SHARED và quá expires_at
     PROCESSING --> EXPIRED: mode = SHARED và quá expires_at
     FAILED --> EXPIRED: mode = SHARED và quá expires_at
@@ -358,6 +357,7 @@ Một số quy tắc không biểu diễn gọn bằng ràng buộc SQL, nên se
 | --- | --- | --- |
 | Hết hạn khoảnh khắc chia sẻ | 5 phút | Chuyển `SHARED` quá `expires_at` sang `EXPIRED`, xóa dòng `moment_media`, tạo việc `DELETE_OBJECTS` với danh sách khóa file |
 | Dọn bản nháp | 15 phút | Xóa khoảnh khắc `DRAFT` tạo quá 1 giờ, kèm việc xóa file đã lỡ tải lên |
+| Dọn khoảnh khắc lỗi | 1 ngày | Xóa khoảnh khắc `FAILED` tạo quá 7 ngày ở mọi chế độ, kèm việc xóa file (D-029) |
 | Dọn token | 1 ngày | Xóa `refresh_tokens` và `email_tokens` đã hết hạn quá 7 ngày |
 | Dọn hàng đợi | 1 ngày | Xóa `media_jobs` ở trạng thái `DONE` quá 7 ngày; việc `RUNNING` bị khóa quá 10 phút trả về `PENDING` |
 

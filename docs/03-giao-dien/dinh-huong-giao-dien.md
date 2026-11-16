@@ -17,6 +17,6 @@ Giao diện chia làm hai không gian để khác biệt giữa chia sẻ và l�
 ## Quy tắc đã chốt
 
 - Caption trên ảnh giới hạn theo số dòng và tự thu nhỏ cỡ chữ; đếm ký tự theo ký tự hiển thị (`Intl.Segmenter` ở client, `BreakIterator` ở server).
-- Ghi chú dài nằm dưới ảnh, thu gọn với "xem thêm".
+- Ghi chú dài nằm dưới ảnh, thu gọn với "xem thêm" — để sau MVP (D-030).
 - Lưu ảnh gốc + các lớp trang trí dạng JSON, kèm một bản ghép sẵn để hiển thị nhanh; về sau trang trí lại được từ ảnh gốc.
 - Thiết kế mobile-first (khung 390 px) dù chạy desktop trước.

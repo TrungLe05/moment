@@ -6,15 +6,15 @@ Cập nhật: 16/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Quyết đ
 
 Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền tảng của giai đoạn 1. Bộ tài liệu thiết kế đã có bản nháp 1. Đã có hạ tầng dev (Compose: PostgreSQL, RustFS, Mailpit), `.env.example`, khung backend Spring Boot và frontend Next.js tối thiểu, CI GitHub Actions (job đẩy image lên Docker Hub tạm tắt đến release v1). Repo đã push lần đầu lên `main`, CI xanh; quy ước nhánh `main` / `develop` / nhánh làm việc / `release/*` ở D-012.
 
-Đang chặn: 8 giả định của đặc tả (Q-001 → Q-008), ADR 0003 (Q-009, chặn profile `api`/`worker`), 8 điểm lệch giữa tài liệu (Q-012 → Q-019). Tên miền, VPS (Q-010), email production (Q-011) và cách phục vụ frontend ở production (Q-021) chỉ chặn bước triển khai.
+Đặc tả, database, API đã lên bản chốt 1 (T-014). Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-**Việc kế tiếp:** chủ dự án tạo nhánh `develop`; trả lời Q-001 → Q-019 và Q-021; Claude cập nhật tài liệu lên bản chốt (T-014), làm tiếp T-103, T-106.
+**Việc kế tiếp:** nền tảng backend (T-105, T-106), API tài khoản E1, nền tảng frontend (T-103, T-107).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
-| 0 · Chuẩn bị | Đang làm | 8 / 16 | Còn chốt giả định, sửa điểm lệch, font, glassmorphism, ước lượng |
+| 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
 | 1 · MVP | Đang làm | 3 / 40 | T-101, T-104, T-109 xong; T-102 chờ Q-009; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
@@ -23,6 +23,12 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 16/11/2026 · Chốt câu hỏi mở, nâng tài liệu lên bản chốt 1
+
+- Chủ dự án chốt Q-001 → Q-009 và Q-012 → Q-019 theo đề xuất (D-014 → D-030); ADR 0003 chuyển "Đã chấp nhận".
+- Sửa đặc tả (bỏ nhãn giả định, quy tắc tài khoản demo), database (11 bảng, bỏ `note`, job dọn `FAILED`), API (`locale` cho `/auth/google`, `uploadId` ký, `auth_time`, chuẩn hóa emoji, bỏ `note`), kế hoạch tổng quan, định hướng giao diện. T-007, T-008, T-009, T-014 xong.
+- Còn mở: Q-010, Q-011, Q-021 (chỉ chặn triển khai).
 
 ### 16/11/2026 · Tạm tắt đẩy image, chốt quy ước git
 

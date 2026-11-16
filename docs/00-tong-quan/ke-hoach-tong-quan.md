@@ -23,7 +23,7 @@ Ba nguyên tắc dẫn mọi quyết định:
 | Lưu khoảnh khắc của bạn bè | Chưa làm |
 | Video | Tối đa 5 giây |
 | Nguồn ảnh | Chụp trực tiếp hoặc tải từ máy (gắn nhãn "tải lên") |
-| Chữ | Caption ngắn trên ảnh, giới hạn theo dòng; ghi chú dài bên dưới |
+| Chữ | Caption ngắn trên ảnh, giới hạn theo dòng; ghi chú dài bên dưới để sau MVP (D-030) |
 | Rate | Bỏ |
 | Người nhận | Tất cả bạn bè (mặc định) hoặc chọn vài người |
 | Bạn bè | Tối đa 15 ở bản miễn phí; kết bạn qua link mời và mã QR |
@@ -40,7 +40,7 @@ Ba nguyên tắc dẫn mọi quyết định:
 
 MVP là bản web desktop mà một nhóm bạn thật dùng được để chia sẻ và lưu giữ khoảnh khắc. Chi tiết nằm ở [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md).
 
-**Có trong MVP:** đăng ký email + mật khẩu và Google; kết bạn qua link mời và QR (tối đa 15); trình soạn khoảnh khắc (ảnh, video 5 giây, tải từ máy, caption, sticker, biểu ngữ, ghi chú); chọn chia sẻ 24h hoặc lưu giữ và người nhận; feed vuốt dọc với reaction; danh sách lưu giữ đơn giản; PWA; song ngữ; triển khai VPS với tài khoản demo.
+**Có trong MVP:** đăng ký email + mật khẩu và Google; kết bạn qua link mời và QR (tối đa 15); trình soạn khoảnh khắc (ảnh, video 5 giây, tải từ máy, caption, sticker, biểu ngữ); chọn chia sẻ 24h hoặc lưu giữ và người nhận; feed vuốt dọc với reaction; danh sách lưu giữ đơn giản; PWA; song ngữ; triển khai VPS với tài khoản demo.
 
 **Chưa có trong MVP:** chat 1-1, trả lời bằng khoảnh khắc, thông báo đẩy, photobooth, "Ngày này năm trước", hộp thời gian, tổng kết cuối năm, gắn nhạc, widget, gói premium, chat nhóm, ứng dụng Android/iOS.
 

@@ -15,44 +15,13 @@ File này có hai phần: câu hỏi đang chờ chốt (`Q-xxx`) và sổ quy�
 
 Cột "Đề xuất" là phương án đang ghi trong tài liệu (hoặc Claude đề xuất nếu tài liệu chưa có). Trả lời "theo đề xuất" là đủ để chốt.
 
-### Giả định của đặc tả MVP
-
-Nguồn: [Đặc tả MVP, mục 7](../01-san-pham/dac-ta-mvp.md#7-giả-định-cần-xác-nhận).
-
-| Mã | Câu hỏi | Đề xuất | Phương án khác | Chặn |
-| --- | --- | --- | --- | --- |
-| Q-001 | (A1) MVP có kho lưu giữ đơn giản không? | Có (E5) | Bỏ E5, đợi kho polaroid ở giai đoạn 3 | T-151 |
-| Q-002 | (A2) Mở link mời và bấm "Kết bạn" là thành bạn ngay? | Có, không cần duyệt | Gửi lời mời, chủ link duyệt | T-122 |
-| Q-003 | (A3) Có cho chuyển lưu giữ về chia sẻ không? | Không | Cho chuyển lại khi còn trong 24 giờ | T-144 |
-| Q-004 | (A4) Có cho sửa khoảnh khắc sau khi đăng không? | Không | Cho sửa caption và ghi chú | T-131 |
-| Q-005 | (A5) Reaction: một reaction/người/khoảnh khắc, bộ 6 emoji cố định? | Có | Nhiều reaction, emoji tự do | T-143 |
-| Q-006 | (A6) Đăng nhập Google trùng email đã xác thực thì tự liên kết? | Có, khi `email_verified = true` | Báo lỗi, bắt đăng nhập mật khẩu rồi liên kết | T-114 |
-| Q-007 | (A7) Hủy rồi kết bạn lại thì thấy lại khoảnh khắc cũ? | Có | Mất vĩnh viễn | T-123 |
-| Q-008 | (A8) Khoảnh khắc của chính mình hiện trong feed? | Có | Chỉ hiện của bạn bè | T-142 |
-
 ### Kỹ thuật và vận hành
 
 | Mã | Câu hỏi | Đề xuất | Chặn |
 | --- | --- | --- | --- |
-| Q-009 | Chấp nhận ADR 0003 (hàng đợi bằng bảng PostgreSQL)? Hiện ở trạng thái "Đề xuất" | Chấp nhận | T-009, T-102, T-132 |
 | Q-010 | Tên miền và nhà cung cấp VPS? | Chưa có đề xuất | T-012, T-166 |
 | Q-011 | Dùng dịch vụ gì để gửi email (xác thực, đặt lại mật khẩu) khi triển khai? Phần dev đã chốt Mailpit (D-008); backend gửi qua SMTP chuẩn nên production chỉ đổi cấu hình | Chưa có đề xuất; cần chốt trước T-166 | T-164, T-166 |
 | Q-021 | Production phục vụ frontend tĩnh, TLS và chuyển tiếp `/api` bằng gì? Tài liệu chưa ghi | Chưa có đề xuất | T-164 |
-
-### Điểm lệch giữa các tài liệu
-
-Claude phát hiện khi rà tài liệu ngày 16/11/2026. Chưa sửa tài liệu nào; chờ chủ dự án chọn hướng.
-
-| Mã | Điểm lệch | Đề xuất của Claude | Chặn |
-| --- | --- | --- | --- |
-| Q-012 | US-07 nói ngôn ngữ mặc định theo trình duyệt (khác vi/en → en), nhưng `users.locale` mặc định `'vi'` và `POST /auth/google` không nhận `locale`, nên người dùng Google mới luôn là `vi` | Thêm `locale` (tùy chọn) vào body `/auth/google`; giữ default DB chỉ là giá trị dự phòng | T-114, T-117 |
-| Q-013 | Thiết kế database ghi "10 bảng" nhưng định nghĩa 11 bảng (tính cả `media_jobs`) | Sửa câu mở đầu thành 11 bảng | T-014 |
-| Q-014 | `POST /me/avatar/upload-url` trả `uploadId`, nhưng database không có chỗ lưu upload đang chờ để `complete` đối chiếu | Mã hóa `uploadId` thành chuỗi ký (chứa userId và object key, có hạn), không cần bảng mới | T-116 |
-| Q-015 | `DELETE /me` cho tài khoản chỉ có Google yêu cầu "đăng nhập lại trong 5 phút gần nhất", nhưng chưa có chỗ lưu thời điểm xác thực | Thêm claim `auth_time` vào access token khi đăng nhập/đăng nhập Google | T-118 |
-| Q-016 | Tài khoản demo: đặc tả chỉ cấm đổi mật khẩu và xóa tài khoản. Chưa rõ người xem demo có được đổi username, tạo mã mời mới, hủy kết bạn, xóa khoảnh khắc của dữ liệu mẫu không, và bao lâu dựng lại dữ liệu một lần | Cho thao tác bình thường, chỉ khóa những gì đặc tả đã ghi; script seed chạy lại hằng ngày | T-163 |
-| Q-017 | Emoji `❤️` gồm 2 code point (có U+FE0F). Client gửi `❤` không có U+FE0F sẽ bị `CHECK` của bảng `reactions` từ chối | Server chuẩn hóa emoji trước khi kiểm tra; ghi rõ trong API mục 3.5 | T-143 |
-| Q-018 | Khoảnh khắc lưu giữ bị `FAILED` không bao giờ hết hạn và không có job dọn, nên file gốc nằm lại mãi nếu chủ không thử lại hoặc xóa | Job dọn khoảnh khắc `FAILED` quá 7 ngày (mọi chế độ), hoặc hiển thị nhắc chủ trong kho | T-161 |
-| Q-019 | Đặc tả đã bỏ ghi chú dài (D-004), nhưng các tài liệu khác vẫn còn: cột `moments.note` và ràng buộc `moments_note_len` (database), trường `note` trong `POST /moments` và đối tượng trả về (API), dòng "ghi chú dài bên dưới" và "ghi chú" trong phạm vi MVP (kế hoạch tổng quan), quy tắc "Ghi chú dài nằm dưới ảnh" (định hướng giao diện) | Bỏ `note` khỏi database và API ở MVP; ghi chú ở kế hoạch và giao diện chuyển thành "để sau MVP". Cần chủ dự án đồng ý sửa 4 file này | T-014, T-105, T-131 |
 
 ## Đã chốt
 
@@ -62,6 +31,7 @@ Claude phát hiện khi rà tài liệu ngày 16/11/2026. Chưa sửa tài liệ
 | --- | --- | --- | --- |
 | D-001 | Làm web desktop trước, code sẵn sàng đóng gói Capacitor | 15/11/2026 | [0001](../04-quyet-dinh/0001-web-desktop-truoc-san-sang-capacitor.md) |
 | D-002 | Lưu ảnh gốc và lớp trang trí JSON tách riêng | 15/11/2026 | [0002](../04-quyet-dinh/0002-luu-anh-goc-va-lop-trang-tri-json.md) |
+| D-022 | (Q-009) Hàng đợi việc nền bằng bảng PostgreSQL `media_jobs`, worker là profile `worker` | 16/11/2026 | [0003](../04-quyet-dinh/0003-hang-doi-bang-bang-postgresql.md) |
 
 Các quyết định sản phẩm đã chốt trước ngày 16/11/2026 (nền tảng, 24 giờ, video 5 giây, tối đa 15 bạn, chat 1-1 để sau...) nằm ở bảng "Các quyết định đã chốt" của [kế hoạch tổng quan](../00-tong-quan/ke-hoach-tong-quan.md#các-quyết-định-đã-chốt); không chép lại ở đây để tránh hai nguồn lệch nhau.
 
@@ -80,3 +50,19 @@ Các quyết định sản phẩm đã chốt trước ngày 16/11/2026 (nền t
 | D-011 | CI/CD bằng GitHub Actions (`.github/workflows/ci.yml`): test backend, lint/kiểm tra kiểu/build frontend trên mỗi PR và push; push `main` hoặc tag `v*` thì đẩy image backend lên Docker Hub (`<DOCKERHUB_USERNAME>/moment-backend`); bước này đang tạm tắt theo D-013. Chưa tự triển khai lên VPS | 16/11/2026 | [ARCHITECTURE.md](../../ARCHITECTURE.md), [README.md](../../README.md) |
 | D-012 | Quy ước git: `main` là nhánh chính; `develop` gom PR từ các nhánh làm việc tách từ `develop`; nhánh có lỗi thì tách nhánh sửa từ chính nó, PR vào lại nhánh đó rồi mới PR vào `develop`; code ổn định thì tách `release/<phiên bản>`. Commit message, tiêu đề và mô tả PR viết tiếng Anh; commit message và mô tả PR không có trailer/footer kiểu Claude Code (kể cả `Co-Authored-By`); push bằng `git config` sẵn có của chủ dự án; Claude chỉ commit/push/tạo PR khi được cho phép. Comment giải thích code viết tiếng Việt | 16/11/2026 | [CLAUDE.md](../../CLAUDE.md) |
 | D-013 | Tạm tắt job đẩy image backend lên Docker Hub (comment trong `ci.yml`) vì chưa có chức năng ổn định; bật lại khi chuẩn bị release v1 (T-110). CI build và test vẫn chạy | 16/11/2026 | `.github/workflows/ci.yml`, [ARCHITECTURE.md](../../ARCHITECTURE.md), [README.md](../../README.md) |
+| D-014 | (Q-001, A1) MVP có kho lưu giữ đơn giản (E5) | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-015 | (Q-002, A2) Mở link mời và bấm "Kết bạn" là thành bạn ngay, không cần duyệt (BR-05) | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-016 | (Q-003, A3) Không chuyển lưu giữ về chia sẻ (BR-16) | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-017 | (Q-004, A4) Không sửa khoảnh khắc sau khi đăng (BR-17) | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-018 | (Q-005, A5) Một reaction mỗi người trên một khoảnh khắc, bộ 6 emoji cố định (BR-21) | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-019 | (Q-006, A6) Đăng nhập Google trùng email đã xác thực thì tự liên kết, chỉ khi `email_verified = true` (BR-03) | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-020 | (Q-007, A7) Hủy rồi kết bạn lại thì thấy lại khoảnh khắc cũ (BR-07) | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-021 | (Q-008, A8) Khoảnh khắc của chính mình hiện trong feed (US-30) | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-023 | (Q-012) `POST /auth/google` nhận thêm `locale` tùy chọn; default `'vi'` của `users.locale` chỉ là giá trị dự phòng | 16/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md) |
+| D-024 | (Q-013) Thiết kế database có 11 bảng (tính cả `media_jobs`) | 16/11/2026 | [Thiết kế database](../02-ky-thuat/thiet-ke-database.md) |
+| D-025 | (Q-014) `uploadId` của ảnh đại diện là chuỗi ký bởi server (chứa userId, object key, hạn dùng), không cần bảng mới | 16/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md) |
+| D-026 | (Q-015) Access token có claim `auth_time` (thời điểm xác thực bằng mật khẩu hoặc Google) để kiểm tra "đăng nhập lại trong 5 phút" khi `DELETE /me` | 16/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md) |
+| D-027 | (Q-016) Tài khoản demo thao tác bình thường, chỉ khóa đổi mật khẩu và xóa tài khoản; script seed chạy lại hằng ngày | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
+| D-028 | (Q-017) Server chuẩn hóa emoji trước khi kiểm tra (`❤` không có U+FE0F thành `❤️`) | 16/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md) |
+| D-029 | (Q-018) Job dọn khoảnh khắc `FAILED` tạo quá 7 ngày (mọi chế độ), kèm việc xóa file | 16/11/2026 | [Thiết kế database](../02-ky-thuat/thiet-ke-database.md) |
+| D-030 | (Q-019) Bỏ `note` khỏi database và API ở MVP; ghi chú dài trong kế hoạch và định hướng giao diện chuyển thành "để sau MVP" | 16/11/2026 | [Thiết kế database](../02-ky-thuat/thiet-ke-database.md), [Danh sách API](../02-ky-thuat/danh-sach-api.md), [Kế hoạch tổng quan](../00-tong-quan/ke-hoach-tong-quan.md), [Định hướng giao diện](../03-giao-dien/dinh-huong-giao-dien.md) |
