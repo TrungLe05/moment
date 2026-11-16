@@ -12,12 +12,13 @@ import org.springframework.context.annotation.Import;
 /**
  * Integration test chạy với PostgreSQL thật qua Testcontainers (CLAUDE.md, kiểm thử).
  * Dùng chung một cấu hình để Spring giữ lại context giữa các lớp test.
- * Khóa JWT dưới đây chỉ dùng cho test, không phải secret thật.
+ * Khóa JWT sinh ngẫu nhiên mỗi lần chạy: hai chuỗi hex 32 ký tự của {@code random.value} ghép lại
+ * là base64 hợp lệ dài 48 byte, nên không có khóa nào nằm cứng trong code.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @SpringBootTest(properties = {
-        "moment.auth.jwt-signing-key=dGVzdC1vbmx5LWp3dC1rZXktbm90LWEtcmVhbC1zZWNyZXQtMDEyMzQ1Njc4OQ==",
+        "moment.auth.jwt-signing-key=${random.value}${random.value}",
         "moment.auth.google-client-id=test-client-id",
         "moment.auth.frontend-base-url=http://localhost:3000"
 })
