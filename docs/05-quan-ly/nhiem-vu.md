@@ -64,15 +64,15 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-111 | Đăng ký email + mật khẩu, xác thực email | Must | Chưa làm | US-01, US-02, BR-01 |
-| T-112 | Đăng nhập email + mật khẩu, khóa 15 phút sau 5 lần sai | Must | Chưa làm | US-03 |
-| T-113 | JWT access + refresh token xoay vòng theo family, cookie (web) / body (native), đăng xuất | Must | Chưa làm | US-08, API mục 2 |
-| T-114 | Đăng nhập Google bằng ID token | Must | Chưa làm | US-04, BR-03, D-023 |
-| T-115 | Quên và đặt lại mật khẩu, thu hồi mọi phiên | Must | Chưa làm | US-05 |
-| T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Chưa làm | US-06, BR-02, D-025 |
-| T-117 | Đổi ngôn ngữ giao diện, lưu vào tài khoản | Must | Chưa làm | US-07, D-023 |
+| T-111 | Đăng ký email + mật khẩu, xác thực email | Must | Xong | US-01, US-02, BR-01 |
+| T-112 | Đăng nhập email + mật khẩu, khóa 15 phút sau 5 lần sai | Must | Xong | US-03 |
+| T-113 | JWT access + refresh token xoay vòng theo family, cookie (web) / body (native), đăng xuất | Must | Xong | US-08, API mục 2 |
+| T-114 | Đăng nhập Google bằng ID token | Must | Xong | US-04, BR-03, D-023; trường hợp email chưa xác thực chờ xác nhận Q-022 |
+| T-115 | Quên và đặt lại mật khẩu, thu hồi mọi phiên | Must | Xong | US-05 |
+| T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Đang làm | US-06, BR-02, D-025. API username, tên hiển thị, `PROFILE_INCOMPLETE` xong; ảnh đại diện làm sau khi có object storage (T-131) |
+| T-117 | Đổi ngôn ngữ giao diện, lưu vào tài khoản | Must | Đang làm | US-07, D-023. API lưu `locale` xong; còn giao diện |
 | T-118 | Xóa tài khoản và toàn bộ dữ liệu | Should | Chưa làm | US-09, D-026 |
-| T-119 | Giới hạn tần suất (Bucket4j, trong bộ nhớ) | Must | Chưa làm | API mục 6 |
+| T-119 | Giới hạn tần suất (Bucket4j, trong bộ nhớ) | Must | Xong | API mục 6; giới hạn theo IP dùng địa chỉ kết nối, khi có reverse proxy cần cấu hình forwarded header (T-164) |
 
 ### E2 · Bạn bè
 

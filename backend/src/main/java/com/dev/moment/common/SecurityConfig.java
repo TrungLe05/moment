@@ -13,8 +13,9 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Cấu hình bảo mật dùng chung. Xác thực JWT thêm ở T-113.
- * Chỉ mở health check; mọi đường khác bắt xác thực, lỗi trả theo định dạng Problem Details.
+ * Cấu hình bảo mật dùng chung: access token JWT qua header Authorization (T-113).
+ * Mở health check và nhóm Auth công khai (trừ logout); mọi đường khác bắt xác thực,
+ * lỗi trả theo định dạng Problem Details.
  */
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
@@ -23,7 +24,13 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http, ProblemWriter problemWriter) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/api/v1/auth/logout").authenticated()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated())
+                .oauth2ResourceServer(resourceServer -> resourceServer
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint((request, response, exception) ->
+                                problemWriter.write(request, response, ErrorCode.UNAUTHENTICATED)))
                 .cors(Customizer.withDefaults())
                 // API không giữ session; access token đi qua header Authorization nên không cần CSRF token.
                 // Cookie refresh token có SameSite=Strict và Path=/api/v1/auth (danh-sach-api.md mục 2).
