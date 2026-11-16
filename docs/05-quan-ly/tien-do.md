@@ -6,16 +6,16 @@ Cập nhật: 16/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Quyết đ
 
 Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền tảng của giai đoạn 1. Bộ tài liệu thiết kế đã có bản nháp 1. Đã có hạ tầng dev (Compose: PostgreSQL, RustFS, Mailpit), `.env.example`, khung backend Spring Boot và frontend Next.js tối thiểu, CI GitHub Actions (job đẩy image lên Docker Hub tạm tắt đến release v1). Repo đã push lần đầu lên `main`, CI xanh; quy ước nhánh `main` / `develop` / nhánh làm việc / `release/*` ở D-012.
 
-Đặc tả, database, API đã lên bản chốt 1 (T-014). Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
+Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Code nằm trên 4 PR nối tiếp nhau, chưa merge vào `develop`. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-**Việc kế tiếp:** nền tảng backend (T-105, T-106), API tài khoản E1, nền tảng frontend (T-103, T-107).
+**Việc kế tiếp:** chủ dự án review và merge lần lượt PR #1 → #4; trả lời Q-022; sau đó làm E2 bạn bè (T-121 → T-123) và object storage cho ảnh đại diện (T-116, T-131).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 3 / 40 | T-101, T-104, T-109 xong; T-102 chờ Q-009; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 15 / 40 | Nền tảng và E1 gần xong; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -23,6 +23,14 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 16/11/2026 · Nền tảng backend, API và giao diện tài khoản E1
+
+- PR #2: migration `V1__init.sql` (T-105), hạ tầng chung `common` (T-106). PR #3: API tài khoản (T-111 → T-115, T-117, T-119, một phần T-116), 57 test backend pass. PR #4: nền tảng frontend (T-103, T-107) và giao diện tài khoản, 16 test frontend pass. Bốn PR nối tiếp nhau (#2 trên #1, #3 trên #2, #4 trên #3).
+- Chạy thử thật: đăng ký trên trình duyệt → email tới Mailpit → mở link xác thực → đăng nhập → chọn username → tải lại trang vẫn giữ phiên (cookie refresh qua CORS) → đổi ngôn ngữ → đăng xuất. Trên máy dev cổng 8080 bị chương trình khác dùng nên đã chạy backend ở 8081.
+- Ghi Q-022 (Google trùng email chưa xác thực), đã làm tạm theo phương án an toàn. Ghi D-031 (dependency đã duyệt).
+- Commit cập nhật tài liệu API của PR #3 tách riêng khỏi commit code (cùng PR), lệch quy ước "cùng commit".
+- Còn dở: ảnh đại diện (T-116), xóa tài khoản (T-118), công cụ E2E (T-108).
 
 ### 16/11/2026 · Chốt câu hỏi mở, nâng tài liệu lên bản chốt 1
 

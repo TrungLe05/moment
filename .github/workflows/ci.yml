@@ -73,6 +73,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      - run: npm test
       - run: npm run build
 
       # Bản xuất tĩnh để kiểm tra hoặc triển khai sau; cách phục vụ ở production chờ Q-021.
