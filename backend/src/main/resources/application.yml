@@ -40,6 +40,13 @@ moment:
     frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
   mail:
     from: ${MAIL_FROM:no-reply@moment.local}
+  storage:
+    # Khi dev trỏ vào RustFS trong Compose; production là Cloudflare R2.
+    endpoint: ${S3_ENDPOINT:http://localhost:${S3_PORT:9000}}
+    region: ${S3_REGION:us-east-1}
+    bucket: ${S3_BUCKET:moment}
+    access-key: ${S3_ACCESS_KEY:}
+    secret-key: ${S3_SECRET_KEY:}
   cors:
     # Danh sách origin cách nhau bằng dấu phẩy.
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}

@@ -185,7 +185,9 @@ Quy tắc kiểm tra khi tạo:
 - `caption`, `layers` theo BR-11 và mục 5 của thiết kế database.
 - `trimStartMs` chỉ dùng cho video tải lên.
 
-Lỗi: `VALIDATION_FAILED`, `UNSUPPORTED_MEDIA_TYPE` (415), `PAYLOAD_TOO_LARGE` (413), `NO_FRIENDS` (422), `NOT_FRIENDS` (422, `errors` liệt kê id không hợp lệ).
+Lỗi: `VALIDATION_FAILED`, `UNSUPPORTED_MEDIA_TYPE` (415), `PAYLOAD_TOO_LARGE` (413), `NO_FRIENDS` (422), `NOT_FRIENDS` (422, mỗi id không phải bạn là một phần tử `errors` với `field: "recipientIds"`, `code: "NOT_FRIENDS"`).
+
+Presigned URL tải lên ký cả `Content-Type` và dung lượng khai báo: client phải PUT đúng header trong `headers` và đúng số byte. Khi có lớp `caption`, cột `caption` lấy chữ của lớp đó. `layersVersion` hiện chỉ nhận `1`.
 
 **Báo tải xong** — `POST /moments/{id}/complete`, không body → `202` moment ở trạng thái `PROCESSING`. Server kiểm tra từng file đã có trong object storage và dung lượng khớp khai báo. Lỗi: `UPLOAD_INCOMPLETE` (409), `MOMENT_NOT_DRAFT` (409), `NOT_FOUND`.
 
