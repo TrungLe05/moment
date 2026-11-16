@@ -278,7 +278,7 @@ SELECT EXISTS (
 );
 ```
 
-**Feed (US-30, BR-19):** khoảnh khắc của tôi và khoảnh khắc gửi cho tôi từ người đang là bạn, còn trong 24 giờ, phân trang bằng con trỏ `(created_at, id)`.
+**Feed (US-30, BR-19):** khoảnh khắc của tôi và khoảnh khắc gửi cho tôi từ người đang là bạn, còn trong 24 giờ, phân trang bằng con trỏ `(created_at, id)`. Code (T-142) truyền danh sách bạn lấy qua `FriendService` vào `owner_id IN (:friendIds)` thay cho `EXISTS` trên `friendships`, cùng kết quả (D-035).
 
 ```sql
 SELECT m.*

@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +27,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Tạo khoảnh khắc, báo tải xong, xử lý lại (T-131), xem chi tiết (T-141); API mục 3.4.
+ * Tạo khoảnh khắc, báo tải xong, xử lý lại (T-131), xem chi tiết (T-141), feed (T-142); API mục 3.4.
  * Gọi object storage luôn nằm ngoài transaction database (CLAUDE.md).
  */
 @Service
@@ -111,7 +112,8 @@ class MomentService {
                             upload.headers(), upload.expiresAt());
                 })
                 .toList();
-        return new MomentResponse.Created(toResponse(moment, true, chosenRecipients.size(), files), uploads);
+        return new MomentResponse.Created(
+                toResponse(moment, true, chosenRecipients.size(), files, ownerOf(moment)), uploads);
     }
 
     /** US-28: kiểm tra từng file đã có trên storage, đúng dung lượng khai báo, rồi bắt đầu xử lý. */
@@ -153,6 +155,17 @@ class MomentService {
         return responseFor(viewerId, accessPolicy.viewable(viewerId, momentId));
     }
 
+    /** US-30: feed 24 giờ, mới nhất trước, phân trang bằng con trỏ (API mục 1 và 3.4). */
+    MomentResponse.Page feed(UUID viewerId, String cursor, int limit) {
+        FeedCursor after = cursor == null || cursor.isBlank() ? null : FeedCursor.decode(cursor);
+        // Lấy dư một dòng để biết còn trang sau mà không cần đếm.
+        List<Moment> found = accessPolicy.feedPage(viewerId, after, limit + 1);
+        boolean hasMore = found.size() > limit;
+        List<Moment> items = hasMore ? found.subList(0, limit) : found;
+        String nextCursor = hasMore ? FeedCursor.after(items.getLast()).encode() : null;
+        return new MomentResponse.Page(responsesFor(viewerId, items), nextCursor);
+    }
+
     // Không phải chủ thì trả 404 như khoảnh khắc không tồn tại (BR-20).
     // Quyền xem vẫn đi qua MomentAccessPolicy (CLAUDE.md); thao tác của chủ thì thêm điều kiện là chủ.
     private Moment ownedMoment(UUID ownerId, UUID momentId) {
@@ -172,7 +185,43 @@ class MomentService {
     private MomentResponse responseFor(UUID viewerId, Moment moment) {
         boolean mine = moment.getOwnerId().equals(viewerId);
         int recipientCount = mine ? (int) recipients.countByMomentId(moment.getId()) : 0;
-        return toResponse(moment, mine, recipientCount, media.findAllByMomentId(moment.getId()));
+        return toResponse(moment, mine, recipientCount, media.findAllByMomentId(moment.getId()), ownerOf(moment));
+    }
+
+    // Một trang có tới 30 khoảnh khắc: lấy file, chủ và số người nhận theo lô, không truy vấn từng cái (CLAUDE.md, N+1).
+    private List<MomentResponse> responsesFor(UUID viewerId, List<Moment> page) {
+        if (page.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> ids = page.stream().map(Moment::getId).toList();
+        Map<UUID, List<MomentMedia>> files = media.findAllByMomentIdIn(ids).stream()
+                .collect(Collectors.groupingBy(MomentMedia::getMomentId));
+        Map<UUID, UserSummary> owners = userService.findSummaries(
+                page.stream().map(Moment::getOwnerId).collect(Collectors.toSet()));
+        List<UUID> mine = page.stream().filter(moment -> moment.getOwnerId().equals(viewerId)).map(Moment::getId)
+                .toList();
+        Map<UUID, Long> recipientCounts = new HashMap<>();
+        if (!mine.isEmpty()) {
+            for (Object[] row : recipients.countByMomentIds(mine)) {
+                recipientCounts.put((UUID) row[0], (Long) row[1]);
+            }
+        }
+        List<MomentResponse> responses = new ArrayList<>();
+        for (Moment moment : page) {
+            UserSummary owner = owners.get(moment.getOwnerId());
+            if (owner == null) {
+                // Chủ vừa xóa tài khoản giữa hai câu truy vấn; khoảnh khắc cũng đã bị xóa theo (cascade).
+                continue;
+            }
+            boolean isMine = moment.getOwnerId().equals(viewerId);
+            responses.add(toResponse(moment, isMine, recipientCounts.getOrDefault(moment.getId(), 0L).intValue(),
+                    files.getOrDefault(moment.getId(), List.of()), owner));
+        }
+        return responses;
+    }
+
+    private UserSummary ownerOf(Moment moment) {
+        return userService.findSummary(moment.getOwnerId()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
     }
 
     /** BR-08, BR-10: ảnh cần ORIGINAL + COMPOSED, video cần đúng một ORIGINAL; định dạng và dung lượng theo loại. */
@@ -242,9 +291,8 @@ class MomentService {
         return Set.copyOf(selected);
     }
 
-    private MomentResponse toResponse(Moment moment, boolean mine, int recipientCount, List<MomentMedia> files) {
-        UserSummary owner = userService.findSummary(moment.getOwnerId())
-                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+    private MomentResponse toResponse(Moment moment, boolean mine, int recipientCount, List<MomentMedia> files,
+            UserSummary owner) {
         // API mục 4: ownerView chỉ có với chủ. Đếm reaction và myReaction làm cùng T-143.
         MomentResponse.OwnerView ownerView = mine
                 ? new MomentResponse.OwnerView(moment.getAudience().name(), recipientCount, 0, moment.getFailureReason())

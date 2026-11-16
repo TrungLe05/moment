@@ -197,7 +197,7 @@ Presigned URL tải lên ký cả `Content-Type` và dung lượng khai báo: cl
 
 **Chuyển sang lưu giữ** — `POST /moments/{id}/keep` → `200` moment. Đã là lưu giữ → `200` (không đổi gì). Quá 24 giờ hoặc đã hết hạn → `409 MOMENT_NOT_KEEPABLE`. Không phải chủ → `404`.
 
-**Feed** — `GET /feed?cursor=&limit=` (`limit` mặc định 10, tối đa 30) → `200 { "items": [<moment>], "nextCursor": "..." }`.
+**Feed** — `GET /feed?cursor=&limit=` (`limit` mặc định 10, tối đa 30) → `200 { "items": [<moment>], "nextCursor": "..." }`. Gồm khoảnh khắc `READY` còn trước `expiresAt` của tôi và của bạn gửi cho tôi (BR-19), mới nhất trước. `limit` ngoài 1–30 hoặc `cursor` không do server cấp → `400 VALIDATION_FAILED` (D-035).
 
 **Kho** — `GET /archive?scope=mine|received&cursor=&limit=` (`limit` mặc định 30, tối đa 60) → như feed. Client tự nhóm theo tháng dựa trên `createdAt`.
 
