@@ -9,13 +9,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Khoảnh khắc (danh-sach-api.md mục 3.4): tạo, báo tải xong, xử lý lại. */
+/** Khoảnh khắc (danh-sach-api.md mục 3.4): tạo, xem chi tiết, báo tải xong, xử lý lại. */
 @RestController
 @RequestMapping("/api/v1/moments")
 class MomentController {
@@ -33,6 +34,11 @@ class MomentController {
             @Valid @RequestBody CreateMomentRequest request) {
         rateLimiter.consume(RateLimit.MOMENT_CREATE_PER_USER, jwt.getSubject());
         return ResponseEntity.status(HttpStatus.CREATED).body(momentService.create(CurrentUser.id(jwt), request));
+    }
+
+    @GetMapping("/{id}")
+    MomentResponse detail(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        return momentService.detail(CurrentUser.id(jwt), id);
     }
 
     @PostMapping("/{id}/complete")

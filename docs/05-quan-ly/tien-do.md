@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Code nằm trên 4 PR nối tiếp nhau, chưa merge vào `develop`. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131) và media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`).
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141).
 
-**Việc kế tiếp:** quyền xem và chi tiết khoảnh khắc (T-141), feed (T-142), ảnh đại diện (T-116).
+**Việc kế tiếp:** feed (T-142), reaction (T-143), lưu giữ và xóa (T-144), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 21 / 40 | Nền tảng, E1, E2 gần xong; tạo và xử lý khoảnh khắc xong (T-131, T-132); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 22 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý và xem chi tiết khoảnh khắc xong (T-131, T-132, T-141); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,13 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 16/11/2026 · T-141 quyền xem và chi tiết khoảnh khắc
+
+- PR #10 (T-132) đã merge vào `develop` sau khi CI xanh; từ đây PR nhắm thẳng `develop` vì PR #7 đã merge.
+- Viết test trước (12 test) rồi code `MomentAccessPolicy` và `GET /moments/{id}`: chủ xem mọi trạng thái; người khác cần là người nhận, đang là bạn, khoảnh khắc `READY` và còn trước `expiresAt` hoặc đang lưu giữ; không có quyền thì `404`. Người không phải chủ không nhận `ownerView`.
+- Đồng hồ test cắt về micro giây cho khớp độ chính xác của PostgreSQL. 128 test backend pass.
+- Chưa làm: `myReaction`, `reactionCount` (T-143); feed và kho dùng truy vấn lọc theo cùng điều kiện (T-142, T-151).
 
 ### 16/11/2026 · T-132 media worker
 

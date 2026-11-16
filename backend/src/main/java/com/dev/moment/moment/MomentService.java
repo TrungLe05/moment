@@ -26,7 +26,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Tạo khoảnh khắc, báo tải xong, xử lý lại (T-131, API mục 3.4).
+ * Tạo khoảnh khắc, báo tải xong, xử lý lại (T-131), xem chi tiết (T-141); API mục 3.4.
  * Gọi object storage luôn nằm ngoài transaction database (CLAUDE.md).
  */
 @Service
@@ -37,6 +37,8 @@ class MomentService {
     private static final Duration UPLOAD_URL_TTL = Duration.ofMinutes(15);
     private static final Duration DOWNLOAD_URL_TTL = Duration.ofMinutes(10);
     private static final short CURRENT_LAYERS_VERSION = 1;
+    private static final Set<MomentMedia.Variant> SERVED_VARIANTS = Set.of(MomentMedia.Variant.DISPLAY,
+            MomentMedia.Variant.VIDEO, MomentMedia.Variant.THUMBNAIL);
 
     private final MomentRepository moments;
     private final MomentMediaRepository media;
@@ -44,6 +46,7 @@ class MomentService {
     private final FriendService friendService;
     private final UserService userService;
     private final MediaJobService mediaJobService;
+    private final MomentAccessPolicy accessPolicy;
     private final ObjectStorage storage;
     private final EntityManager entityManager;
     private final TransactionTemplate transactionTemplate;
@@ -52,7 +55,8 @@ class MomentService {
 
     MomentService(MomentRepository moments, MomentMediaRepository media,
             MomentRecipientRepository recipients, FriendService friendService, UserService userService,
-            MediaJobService mediaJobService, ObjectStorage storage, EntityManager entityManager,
+            MediaJobService mediaJobService, MomentAccessPolicy accessPolicy, ObjectStorage storage,
+            EntityManager entityManager,
             TransactionTemplate transactionTemplate, JsonMapper jsonMapper, Clock clock) {
         this.moments = moments;
         this.media = media;
@@ -60,6 +64,7 @@ class MomentService {
         this.friendService = friendService;
         this.userService = userService;
         this.mediaJobService = mediaJobService;
+        this.accessPolicy = accessPolicy;
         this.storage = storage;
         this.entityManager = entityManager;
         this.transactionTemplate = transactionTemplate;
@@ -106,7 +111,7 @@ class MomentService {
                             upload.headers(), upload.expiresAt());
                 })
                 .toList();
-        return new MomentResponse.Created(toResponse(moment, chosenRecipients.size(), files), uploads);
+        return new MomentResponse.Created(toResponse(moment, true, chosenRecipients.size(), files), uploads);
     }
 
     /** US-28: kiểm tra từng file đã có trên storage, đúng dung lượng khai báo, rồi bắt đầu xử lý. */
@@ -143,17 +148,31 @@ class MomentService {
         return currentResponse(ownerId, momentId);
     }
 
+    /** US-42: chi tiết một khoảnh khắc; chỉ trả khi người xem có quyền (BR-19, BR-20). */
+    MomentResponse detail(UUID viewerId, UUID momentId) {
+        return responseFor(viewerId, accessPolicy.viewable(viewerId, momentId));
+    }
+
     // Không phải chủ thì trả 404 như khoảnh khắc không tồn tại (BR-20).
+    // Quyền xem vẫn đi qua MomentAccessPolicy (CLAUDE.md); thao tác của chủ thì thêm điều kiện là chủ.
     private Moment ownedMoment(UUID ownerId, UUID momentId) {
-        return moments.findById(momentId)
-                .filter(found -> found.getOwnerId().equals(ownerId))
-                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        Moment moment = accessPolicy.viewable(ownerId, momentId);
+        if (!moment.getOwnerId().equals(ownerId)) {
+            throw new ApiException(ErrorCode.NOT_FOUND);
+        }
+        return moment;
     }
 
     private MomentResponse currentResponse(UUID ownerId, UUID momentId) {
         entityManager.clear();
-        Moment moment = ownedMoment(ownerId, momentId);
-        return toResponse(moment, (int) recipients.countByMomentId(momentId), media.findAllByMomentId(momentId));
+        return responseFor(ownerId, ownedMoment(ownerId, momentId));
+    }
+
+    // Số người nhận chỉ chủ mới thấy (ownerView), nên chỉ đếm khi người xem là chủ.
+    private MomentResponse responseFor(UUID viewerId, Moment moment) {
+        boolean mine = moment.getOwnerId().equals(viewerId);
+        int recipientCount = mine ? (int) recipients.countByMomentId(moment.getId()) : 0;
+        return toResponse(moment, mine, recipientCount, media.findAllByMomentId(moment.getId()));
     }
 
     /** BR-08, BR-10: ảnh cần ORIGINAL + COMPOSED, video cần đúng một ORIGINAL; định dạng và dung lượng theo loại. */
@@ -223,27 +242,31 @@ class MomentService {
         return Set.copyOf(selected);
     }
 
-    private MomentResponse toResponse(Moment moment, int recipientCount, List<MomentMedia> files) {
+    private MomentResponse toResponse(Moment moment, boolean mine, int recipientCount, List<MomentMedia> files) {
         UserSummary owner = userService.findSummary(moment.getOwnerId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
-        // Đếm reaction làm cùng T-143.
-        MomentResponse.OwnerView ownerView = new MomentResponse.OwnerView(moment.getAudience().name(), recipientCount,
-                0, moment.getFailureReason());
-        return new MomentResponse(moment.getId(), true, owner, moment.getMediaType().name(), moment.getSource().name(),
+        // API mục 4: ownerView chỉ có với chủ. Đếm reaction và myReaction làm cùng T-143.
+        MomentResponse.OwnerView ownerView = mine
+                ? new MomentResponse.OwnerView(moment.getAudience().name(), recipientCount, 0, moment.getFailureReason())
+                : null;
+        return new MomentResponse(moment.getId(), mine, owner, moment.getMediaType().name(), moment.getSource().name(),
                 moment.getMode().name(), moment.getStatus().name(), moment.getCaption(),
                 jsonMapper.readTree(moment.getLayers()), moment.getLayersVersion(), moment.getWidth(),
                 moment.getHeight(), moment.getDurationMs(), moment.getCreatedAt(), moment.getExpiresAt(),
                 moment.getKeptAt(), mediaUrls(moment, files), null, ownerView);
     }
 
-    // URL đọc file chỉ cấp khi khoảnh khắc đã sẵn sàng (API mục 4).
+    // URL đọc file chỉ cấp khi khoảnh khắc đã sẵn sàng (API mục 4), và chỉ cho bản do worker tạo;
+    // ảnh gốc và bản ghép không bao giờ trả cho client.
     private MomentResponse.MediaUrls mediaUrls(Moment moment, List<MomentMedia> files) {
         if (moment.getStatus() != Moment.Status.READY) {
             return null;
         }
         Map<MomentMedia.Variant, ObjectStorage.PresignedDownload> urls = new EnumMap<>(MomentMedia.Variant.class);
         for (MomentMedia file : files) {
-            urls.put(file.getVariant(), storage.presignDownload(file.getObjectKey(), DOWNLOAD_URL_TTL));
+            if (SERVED_VARIANTS.contains(file.getVariant())) {
+                urls.put(file.getVariant(), storage.presignDownload(file.getObjectKey(), DOWNLOAD_URL_TTL));
+            }
         }
         return new MomentResponse.MediaUrls(urlOf(urls, MomentMedia.Variant.DISPLAY),
                 urlOf(urls, MomentMedia.Variant.VIDEO), urlOf(urls, MomentMedia.Variant.THUMBNAIL),
