@@ -33,8 +33,10 @@ public class InviteService {
     /** Mã đang hoạt động của tôi; tạo lần đầu khi chưa có. */
     @Transactional
     public Invite myInvite(UUID userId) {
-        InviteCode invite = repository.findById(userId)
-                .orElseGet(() -> repository.save(new InviteCode(userId, newUniqueCode(), clock.instant())));
+        InviteCode invite = repository.findById(userId).orElseGet(() -> {
+            repository.insertIfAbsent(userId, newUniqueCode(), clock.instant());
+            return repository.findById(userId).orElseThrow();
+        });
         return toInvite(invite);
     }
 

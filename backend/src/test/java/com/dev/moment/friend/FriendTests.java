@@ -62,6 +62,28 @@ class FriendTests {
     }
 
     @Test
+    void shouldReturnSameCodeWhenFirstInviteIsFetchedConcurrently() throws Exception {
+        TestUser owner = newUser();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        List<String> codes = new ArrayList<>();
+        try {
+            List<Callable<MockHttpServletResponse>> tasks = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                tasks.add(() -> authed(get("/api/v1/invites/me"), owner));
+            }
+            for (Future<MockHttpServletResponse> future : executor.invokeAll(tasks)) {
+                MockHttpServletResponse response = future.get();
+                assertThat(response.getStatus()).isEqualTo(200);
+                codes.add(api.read(response).get("code").asString());
+            }
+        } finally {
+            executor.shutdown();
+        }
+
+        assertThat(codes).hasSize(4).containsOnly(codes.getFirst());
+    }
+
+    @Test
     void shouldInvalidateOldCodeImmediatelyWhenRotated() throws Exception {
         TestUser owner = newUser();
         String oldCode = inviteCode(owner);

@@ -68,7 +68,15 @@ public class FriendService {
             throw new ApiException(ErrorCode.INVITE_SELF);
         }
         UserPair pair = UserPair.of(meId, inviterId);
-        userService.lockInOrder(pair.inLockOrder());
+        try {
+            userService.lockInOrder(pair.inLockOrder());
+        } catch (ApiException exception) {
+            // Người mời vừa xóa tài khoản: với trang mời, link coi như hết hiệu lực.
+            if (exception.code() == ErrorCode.NOT_FOUND) {
+                throw new ApiException(ErrorCode.INVITE_INVALID);
+            }
+            throw exception;
+        }
 
         UserSummary inviter = userService.findSummary(inviterId)
                 .orElseThrow(() -> new ApiException(ErrorCode.INVITE_INVALID));

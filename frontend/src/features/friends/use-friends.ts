@@ -12,19 +12,8 @@ export function useFriends() {
   const [friends, setFriends] = useState<FriendList | null>(null);
   const [error, setError] = useState<unknown>(null);
 
-  const reload = useCallback(async () => {
-    try {
-      const [loadedInvite, loadedFriends] = await Promise.all([friendsApi.myInvite(), friendsApi.list()]);
-      setInvite(loadedInvite);
-      setFriends(loadedFriends);
-      setError(null);
-    } catch (caught: unknown) {
-      setError(caught);
-    }
-  }, []);
-
   useEffect(() => {
-    // Tải dữ liệu khi mở trang; setState chỉ chạy sau khi request xong.
+    // Tải song song khi mở trang; setState chỉ chạy sau khi request xong.
     let cancelled = false;
     Promise.all([friendsApi.myInvite(), friendsApi.list()]).then(
       ([loadedInvite, loadedFriends]) => {
@@ -48,11 +37,12 @@ export function useFriends() {
   const unfriend = useCallback(
     async (userId: string) => {
       await friendsApi.unfriend(userId);
-      await reload();
-      // Số bạn trong hồ sơ (x/15) cũng đổi theo.
-      updateUser(await accountApi.me());
+      // Chỉ danh sách và số bạn (x/15) đổi; mã mời giữ nguyên nên không tải lại.
+      const [list, me] = await Promise.all([friendsApi.list(), accountApi.me()]);
+      setFriends(list);
+      updateUser(me);
     },
-    [reload, updateUser],
+    [updateUser],
   );
 
   return { invite, friends, error, rotateInvite, unfriend };
