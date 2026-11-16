@@ -84,8 +84,7 @@ class MomentService {
         Instant now = clock.instant();
         List<MomentMedia> files = request.files().stream()
                 .map(file -> new MomentMedia(momentId, file.variant(),
-                        "moments/" + momentId + "/" + file.variant().name().toLowerCase() + "-" + UUID.randomUUID()
-                                + "." + extensions.get(file.variant()),
+                        MomentMedia.objectKey(momentId, file.variant(), extensions.get(file.variant())),
                         file.contentType(), file.sizeBytes(), now))
                 .toList();
         Moment moment = new Moment(momentId, ownerId, request.mediaType(), request.source(), request.mode(),

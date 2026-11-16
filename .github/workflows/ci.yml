@@ -43,6 +43,10 @@ jobs:
 
       # Testcontainers dùng Docker có sẵn trên runner ubuntu để chạy PostgreSQL thật.
       # Gọi qua sh vì commit từ Windows thường không giữ quyền thực thi của mvnw.
+      # Test xử lý media gọi ffmpeg thật, giống container worker (D-034).
+      - name: Cài ffmpeg
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ffmpeg
+
       - name: Build và test
         run: sh ./mvnw -B verify
 

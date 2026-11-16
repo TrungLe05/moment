@@ -1,5 +1,6 @@
 package com.dev.moment.media;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -21,6 +22,13 @@ public interface ObjectStorage {
     /** Thông tin file nếu đã có trên storage. */
     Optional<StoredObject> find(String objectKey);
 
+    /** Tải file về đường dẫn chưa tồn tại; dùng ở worker (T-132). */
+    void download(String objectKey, Path target);
+
+    /** Ghi file do server tạo (DISPLAY, VIDEO, THUMBNAIL). */
+    void upload(String objectKey, Path source, String contentType);
+
+    /** Xóa nhiều file; khóa không tồn tại coi như đã xóa. */
     void deleteAll(Collection<String> objectKeys);
 
     record PresignedUpload(String method, String url, Map<String, String> headers, Instant expiresAt) {

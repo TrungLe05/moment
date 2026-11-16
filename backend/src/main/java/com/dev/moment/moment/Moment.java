@@ -152,6 +152,10 @@ class Moment {
         return layersVersion;
     }
 
+    Integer getTrimStartMs() {
+        return trimStartMs;
+    }
+
     Integer getDurationMs() {
         return durationMs;
     }
