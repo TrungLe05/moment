@@ -43,10 +43,33 @@ export type Moment = {
 
 export type MomentPage = { items: Moment[]; nextCursor: string | null };
 
+/** Bộ emoji cố định (BR-21), đúng dạng chuẩn server lưu (D-028). */
+export const REACTION_EMOJIS = ["❤️", "😍", "🔥", "😂", "😮", "😢"] as const;
+
+export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];
+
+export type ReactionItem = { user: UserSummary; emoji: string; reactedAt: string };
+
 export const momentsApi = {
   // Con trỏ là chuỗi mờ do server cấp, client chỉ gửi lại (API mục 1).
   feed: (cursor: string | null) =>
     apiClient.request<MomentPage>(cursor ? `/feed?cursor=${encodeURIComponent(cursor)}` : "/feed", { auth: true }),
 
   detail: (id: string) => apiClient.request<Moment>(`/moments/${encodeURIComponent(id)}`, { auth: true }),
+
+  // Reaction (API mục 3.5): đặt hoặc đổi; "thả lại đúng emoji thì gỡ" do client gọi unreact (BR-21).
+  react: (id: string, emoji: ReactionEmoji) =>
+    apiClient.request<{ emoji: string }>(`/moments/${encodeURIComponent(id)}/reaction`, {
+      method: "PUT",
+      body: { emoji },
+      auth: true,
+    }),
+
+  unreact: (id: string) =>
+    apiClient.request<void>(`/moments/${encodeURIComponent(id)}/reaction`, { method: "DELETE", auth: true }),
+
+  // Chỉ chủ gọi được (BR-22); người khác nhận 404.
+  reactions: async (id: string) =>
+    (await apiClient.request<{ items: ReactionItem[] }>(`/moments/${encodeURIComponent(id)}/reactions`, { auth: true }))
+      .items,
 };

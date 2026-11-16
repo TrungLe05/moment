@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/lib/api";
-import { momentsApi, type Moment } from "@/lib/api/moments";
+import { momentsApi, type Moment, type ReactionEmoji } from "@/lib/api/moments";
 
 export type FeedStatus = "loading" | "idle" | "done" | "error";
 
@@ -82,5 +82,32 @@ export function useFeed() {
     }
   }, []);
 
-  return { items, status, error, loadMore, refreshMoment };
+  const setMyReaction = useCallback((id: string, myReaction: string | null) => {
+    setItems((current) => current.map((moment) => (moment.id === id ? { ...moment, myReaction } : moment)));
+  }, []);
+
+  /**
+   * US-32, BR-21: thả emoji khác thì thay, thả lại đúng emoji đang chọn thì gỡ. Đổi ngay trên giao diện rồi mới gọi API;
+   * lỗi thì trả lại emoji cũ và ném lỗi để thanh reaction báo.
+   */
+  const toggleReaction = useCallback(
+    async (moment: Moment, emoji: ReactionEmoji) => {
+      const previous = moment.myReaction;
+      const next = previous === emoji ? null : emoji;
+      setMyReaction(moment.id, next);
+      try {
+        if (next === null) {
+          await momentsApi.unreact(moment.id);
+        } else {
+          setMyReaction(moment.id, (await momentsApi.react(moment.id, next)).emoji);
+        }
+      } catch (caught: unknown) {
+        setMyReaction(moment.id, previous);
+        throw caught;
+      }
+    },
+    [setMyReaction],
+  );
+
+  return { items, status, error, loadMore, refreshMoment, toggleReaction };
 }
