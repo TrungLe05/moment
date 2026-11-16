@@ -18,7 +18,7 @@ import { useNow } from "./use-now";
 export function FeedView() {
   const { t } = useI18n();
   const { user } = useSession();
-  const { items, status, error, loadMore, refreshMoment, toggleReaction } = useFeed();
+  const { items, status, error, loadMore, refreshMoment, toggleReaction, keepMoment, deleteMoment } = useFeed();
   const now = useNow();
   // Khoảnh khắc chia sẻ hết 24 giờ thì rời feed ngay, không chờ tải lại (BR-14).
   const visible = items.filter((moment) => timeLeft(moment.expiresAt, now) !== null);
@@ -52,6 +52,8 @@ export function FeedView() {
                   now={now}
                   onMediaError={(id) => void refreshMoment(id)}
                   onReact={(emoji) => toggleReaction(moment, emoji)}
+                  onKeep={() => keepMoment(moment.id)}
+                  onDelete={() => deleteMoment(moment.id)}
                 />
               </li>
             ))}
