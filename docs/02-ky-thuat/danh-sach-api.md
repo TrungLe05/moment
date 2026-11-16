@@ -193,6 +193,8 @@ Presigned URL tải lên ký cả `Content-Type` và dung lượng khai báo: cl
 
 **Xử lý lại** — `POST /moments/{id}/retry` → `202`. Chỉ cho trạng thái `FAILED`, ngược lại `409 MOMENT_NOT_FAILED`.
 
+**Chi tiết** — `GET /moments/{id}` → `200` moment (mục 4). Chủ xem được ở mọi trạng thái. Người khác chỉ xem được theo BR-19: nằm trong danh sách người nhận, đang là bạn của chủ, khoảnh khắc đã `READY` (BR-13) và còn trước `expiresAt` hoặc ở chế độ lưu giữ. Không có quyền hoặc không tồn tại → `404 NOT_FOUND`, kiểm tra qua `MomentAccessPolicy`.
+
 **Chuyển sang lưu giữ** — `POST /moments/{id}/keep` → `200` moment. Đã là lưu giữ → `200` (không đổi gì). Quá 24 giờ hoặc đã hết hạn → `409 MOMENT_NOT_KEEPABLE`. Không phải chủ → `404`.
 
 **Feed** — `GET /feed?cursor=&limit=` (`limit` mặc định 10, tối đa 30) → `200 { "items": [<moment>], "nextCursor": "..." }`.
