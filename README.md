@@ -44,18 +44,20 @@ cp .env.example .env          # rồi đổi POSTGRES_PASSWORD, S3_SECRET_KEY
 docker compose up -d          # PostgreSQL :5432, RustFS :9000 (console :9001), Mailpit :8025
 ```
 
-Backend (đọc `.env` ở gốc repo, health check ở http://localhost:8080/actuator/health):
+Backend (đọc `.env` ở gốc repo, cần đặt `JWT_SIGNING_KEY` trước; health check ở http://localhost:8080/actuator/health; email xem ở Mailpit http://localhost:8025):
 
 ```bash
 cd backend && ./mvnw spring-boot:run
 ```
 
-Frontend (http://localhost:3000):
+Frontend (http://localhost:3000; cấu hình trong `frontend/.env.local`, mẫu ở `frontend/.env.example`):
 
 ```bash
 cd frontend && npm install && npm run dev
 ```
 
-Kiểm tra trước khi push: `./mvnw verify` trong `backend/` (cần Docker cho Testcontainers); `npm run lint`, `npm run typecheck`, `npm run build` trong `frontend/`.
+Nếu cổng 8080 đã bị chương trình khác dùng, chạy backend bằng `SERVER_PORT=8081` và đặt `NEXT_PUBLIC_API_BASE_URL=http://localhost:8081`.
+
+Kiểm tra trước khi push: `./mvnw verify` trong `backend/` (cần Docker cho Testcontainers); `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` trong `frontend/`.
 
 Job đẩy image backend lên Docker Hub đang tạm tắt đến release v1. Khi bật lại, cần tạo trong GitHub → Settings → Secrets and variables → Actions: biến `DOCKERHUB_USERNAME` và secret `DOCKERHUB_TOKEN` (Docker Hub access token quyền Read & Write).

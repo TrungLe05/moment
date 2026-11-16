@@ -6,16 +6,16 @@ Cập nhật: 16/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Quyết đ
 
 Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền tảng của giai đoạn 1. Bộ tài liệu thiết kế đã có bản nháp 1. Đã có hạ tầng dev (Compose: PostgreSQL, RustFS, Mailpit), `.env.example`, khung backend Spring Boot và frontend Next.js tối thiểu, CI GitHub Actions (job đẩy image lên Docker Hub tạm tắt đến release v1). Repo đã push lần đầu lên `main`, CI xanh; quy ước nhánh `main` / `develop` / nhánh làm việc / `release/*` ở D-012.
 
-Đặc tả, database, API đã lên bản chốt 1 (T-014). Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
+Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Code nằm trên 4 PR nối tiếp nhau, chưa merge vào `develop`. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-**Việc kế tiếp:** nền tảng backend (T-105, T-106), API tài khoản E1, nền tảng frontend (T-103, T-107).
+**Việc kế tiếp:** media worker (T-132), quyền xem và chi tiết khoảnh khắc (T-141), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 3 / 40 | T-101, T-104, T-109 xong; T-102 chờ Q-009; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 19 / 40 | Nền tảng và E1 gần xong; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -23,6 +23,38 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 16/11/2026 · T-131 tạo khoảnh khắc
+
+- Tự review PR #8 bằng code-review: sửa tạo mã mời lần đầu bị đua (ON CONFLICT DO NOTHING), người mời bị xóa trả INVITE_INVALID, bỏ tải lại thừa; đã merge #8. PR #7 để chủ dự án merge bypass (GitGuardian bắt nhầm).
+- Mô hình hóa code bằng graphify (phần code): 1.321 nút, 3.464 cạnh, 82 cụm; kết quả ở `graphify-out/` (không commit).
+- Viết test trước (20 test) rồi code: `POST /moments`, `complete`, `retry`; presigned PUT có ký Content-Type và dung lượng; kiểm tra file bằng HEAD ngoài transaction; chuyển trạng thái có điều kiện; tạo việc `PROCESS_MOMENT` cùng transaction. Testcontainers thêm RustFS thật (khóa sinh ngẫu nhiên). 94 test backend pass.
+- Chưa làm: giao diện soạn và đăng (T-133 → T-137), worker xử lý (T-132).
+
+### 16/11/2026 · E2 bạn bè
+
+- PR #2 → #6 đã merge vào nhánh `docs/T-014-finalize-specs` thay vì `develop` (GitHub tự đổi base); mở PR #7 đưa vào `develop`.
+- Chốt link mời dạng `/invite?code=` (D-032).
+- Backend: mã mời 8 ký tự, tạo mới vô hiệu mã cũ (BR-04); kết bạn ngay (BR-05); khóa hai dòng users theo thứ tự uuid của PostgreSQL rồi đếm (BR-06), có test hai lời mời chạy song song; danh sách bạn một truy vấn user (không N+1); hủy kết bạn (BR-07). Tách `UserResponseFactory` để bỏ phụ thuộc vòng UserService ↔ FriendService. 73 test backend pass.
+- Frontend: trang Bạn bè (link, QR, chia sẻ, tạo link mới có xác nhận, danh sách x/15, hủy có xác nhận), trang mời công khai, giữ `next` qua đăng nhập, đăng ký, onboarding. 23 test frontend pass.
+- Chạy thử trên trình duyệt: mở link mời khi chưa đăng nhập → đăng nhập → quay lại trang mời → kết bạn → danh sách 1/15 → hủy → 0/15.
+- Chưa làm: quay lại trang mời sau bước xác thực email (link email không mang `next`).
+
+
+### 16/11/2026 · Sửa cảnh báo GitGuardian về giá trị giả trong test
+
+- GitGuardian báo 5 chỗ ở PR #3 và 2 chỗ ở PR #4: khóa JWT và mật khẩu viết cứng trong test, không có secret thật.
+- Theo quy ước nhánh (D-012), tách nhánh fix từ từng nhánh lỗi: PR #5 vào nhánh của #3 (khóa JWT lấy từ `${random.value}`, mật khẩu test sinh lúc chạy), PR #6 vào nhánh của #4 (mật khẩu test sinh lúc chạy). 57 test backend, 16 test frontend pass.
+- Commit gốc trong #3, #4 vẫn chứa chuỗi cũ nên check GitGuardian của hai PR đó còn đỏ cho tới khi chủ dự án xử lý cảnh báo trên GitGuardian (hoặc viết lại lịch sử nhánh).
+- Thứ tự merge: #1 → #2 → #5 vào nhánh #3 → #3 → #6 vào nhánh #4 → #4.
+
+### 16/11/2026 · Nền tảng backend, API và giao diện tài khoản E1
+
+- PR #2: migration `V1__init.sql` (T-105), hạ tầng chung `common` (T-106). PR #3: API tài khoản (T-111 → T-115, T-117, T-119, một phần T-116), 57 test backend pass. PR #4: nền tảng frontend (T-103, T-107) và giao diện tài khoản, 16 test frontend pass. Bốn PR nối tiếp nhau (#2 trên #1, #3 trên #2, #4 trên #3).
+- Chạy thử thật: đăng ký trên trình duyệt → email tới Mailpit → mở link xác thực → đăng nhập → chọn username → tải lại trang vẫn giữ phiên (cookie refresh qua CORS) → đổi ngôn ngữ → đăng xuất. Trên máy dev cổng 8080 bị chương trình khác dùng nên đã chạy backend ở 8081.
+- Ghi Q-022 (Google trùng email chưa xác thực), đã làm tạm theo phương án an toàn. Ghi D-031 (dependency đã duyệt).
+- Commit cập nhật tài liệu API của PR #3 tách riêng khỏi commit code (cùng PR), lệch quy ước "cùng commit".
+- Còn dở: ảnh đại diện (T-116), xóa tài khoản (T-118), công cụ E2E (T-108).
 
 ### 16/11/2026 · Chốt câu hỏi mở, nâng tài liệu lên bản chốt 1
 

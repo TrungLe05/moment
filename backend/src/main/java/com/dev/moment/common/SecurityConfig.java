@@ -1,30 +1,51 @@
 package com.dev.moment.common;
 
+import com.dev.moment.common.error.ErrorCode;
+import com.dev.moment.common.error.ProblemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 /**
- * Cấu hình bảo mật tạm của khung repo (T-102).
- * Chỉ mở health check cho Docker và người vận hành; mọi đường khác vẫn bắt xác thực.
- * Xác thực JWT, CORS và cookie refresh token làm ở T-106, T-113.
+ * Cấu hình bảo mật dùng chung: access token JWT qua header Authorization (T-113).
+ * Mở health check và nhóm Auth công khai (trừ logout); mọi đường khác bắt xác thực,
+ * lỗi trả theo định dạng Problem Details.
  */
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, ProblemWriter problemWriter) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                .anyRequest().authenticated())
-                // API không có trang đăng nhập: chưa xác thực thì trả 401 thay vì 403 mặc định.
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/api/v1/auth/logout").authenticated()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        // Trang mời xem được khi chưa đăng nhập (US-11); /invites/me vẫn cần đăng nhập.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/invites/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/invites/*").permitAll()
+                        .anyRequest().authenticated())
+                .oauth2ResourceServer(resourceServer -> resourceServer
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint((request, response, exception) ->
+                                problemWriter.write(request, response, ErrorCode.UNAUTHENTICATED)))
+                .cors(Customizer.withDefaults())
+                // API không giữ session; access token đi qua header Authorization nên không cần CSRF token.
+                // Cookie refresh token có SameSite=Strict và Path=/api/v1/auth (danh-sach-api.md mục 2).
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+                        .authenticationEntryPoint((request, response, exception) ->
+                                problemWriter.write(request, response, ErrorCode.UNAUTHENTICATED))
+                        // Không có quyền thì trả 404 như quy ước, không để lộ tài nguyên có tồn tại.
+                        .accessDeniedHandler((request, response, exception) ->
+                                problemWriter.write(request, response, ErrorCode.NOT_FOUND)));
         return http.build();
     }
 

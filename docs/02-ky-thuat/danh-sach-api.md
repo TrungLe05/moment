@@ -11,7 +11,7 @@ MVP có 32 endpoint REST dưới tiền tố `/api/v1`, chia 5 nhóm. Không có
 | Định dạng | JSON, UTF-8, tên trường `camelCase`, thời gian ISO 8601 UTC (`2026-11-16T02:30:00Z`) |
 | Xác thực | `Authorization: Bearer <accessToken>`; access token là JWT hết hạn sau 15 phút |
 | Loại client | Header `X-Client-Type: web` hoặc `native` quyết định cách trả refresh token (mục 2) |
-| Ngôn ngữ | `Accept-Language: vi` hoặc `en`; quyết định ngôn ngữ của `title`/`detail` trong lỗi |
+| Ngôn ngữ | `Accept-Language: vi` hoặc `en`; quyết định ngôn ngữ của `title`/`detail` trong lỗi. Thiếu header hoặc ngôn ngữ khác → `en` |
 | Truy vết | Server trả `X-Request-Id` trong mọi phản hồi; client có thể gửi sẵn header này |
 | Phân trang | Con trỏ: `?cursor=<chuỗi>&limit=<số>`; phản hồi có `items` và `nextCursor` (`null` khi hết). Con trỏ là chuỗi mờ, client không tự tạo |
 | Không có quyền xem | Trả `404 NOT_FOUND`, không trả `403`, để không lộ khoảnh khắc có tồn tại hay không (BR-20) |
@@ -36,6 +36,8 @@ Lỗi trả theo RFC 9457 (Problem Details), `Content-Type: application/problem+
 ```
 
 Client dựa vào `code` để xử lý; `title`, `detail`, `message` chỉ để hiển thị.
+
+Mã lỗi của từng trường trong `errors`: `REQUIRED` (thiếu), `INVALID_FORMAT` (sai định dạng), `TOO_SHORT`, `TOO_LONG` (độ dài, đếm theo ký tự hiển thị với chữ người dùng nhập), `INVALID` (giá trị khác không hợp lệ). Body không đọc được (JSON hỏng, thiếu tham số) trả `VALIDATION_FAILED` không có `errors`. Đường dẫn hoặc phương thức không tồn tại trả `404 NOT_FOUND`.
 
 ## 2. Xác thực và phiên đăng nhập
 
@@ -87,13 +89,14 @@ Cột "Xác thực": **Không** = công khai, **Có** = cần access token.
 
 Chi tiết:
 
-- `POST /auth/register` — body `{ "email", "password", "locale" }` → `201`. Lỗi: `VALIDATION_FAILED`, `EMAIL_TAKEN` (409).
+- `POST /auth/register` — body `{ "email", "password", "locale"? }` → `201`, không có body. `password` tối thiểu 8 ký tự hiển thị và tối đa 72 byte UTF-8 (giới hạn của BCrypt); `locale` thiếu thì dùng `vi`. Lỗi: `VALIDATION_FAILED`, `EMAIL_TAKEN` (409).
 - `POST /auth/verify-email` — body `{ "token" }` → `204`. Lỗi: `TOKEN_INVALID` (400), `TOKEN_EXPIRED` (400).
 - `POST /auth/resend-verification`, `POST /auth/forgot-password` — body `{ "email" }` → luôn `202`, kể cả email không tồn tại (không lộ tài khoản).
 - `POST /auth/login` — body `{ "email", "password" }` → `200` như mẫu ở mục 2. Lỗi: `INVALID_CREDENTIALS` (401), `EMAIL_NOT_VERIFIED` (403), `LOGIN_LOCKED` (429, có header `Retry-After`).
-- `POST /auth/google` — body `{ "idToken", "locale"? }` → `200` như đăng nhập, thêm `"isNewUser": true|false`. `locale` (`vi` hoặc `en`) chỉ dùng khi tạo tài khoản mới; thiếu thì dùng `vi` (D-023). Server kiểm tra chữ ký, `aud` bằng client id của dự án, `iss`, hạn dùng. Lỗi: `GOOGLE_TOKEN_INVALID` (401).
+- `POST /auth/google` — body `{ "idToken", "locale"? }` → `200` như đăng nhập, thêm `"isNewUser": true|false`. `locale` (`vi` hoặc `en`) chỉ dùng khi tạo tài khoản mới; thiếu thì dùng `vi` (D-023). Google báo `email_verified = false` → `GOOGLE_TOKEN_INVALID`. Email trùng một tài khoản email chưa xác thực → tài khoản đó được xác thực và bỏ mật khẩu cũ (Q-022, đang chờ chốt). Server kiểm tra chữ ký, `aud` bằng client id của dự án, `iss`, hạn dùng. Lỗi: `GOOGLE_TOKEN_INVALID` (401).
 - `POST /auth/refresh` — web: không body, đọc cookie; native: body `{ "refreshToken" }` → `200 { accessToken, expiresIn }` (+ refresh token mới theo mục 2). Lỗi: `UNAUTHENTICATED`, `TOKEN_REUSED` (401).
-- `POST /auth/reset-password` — body `{ "token", "newPassword" }` → `204`. Lỗi: `TOKEN_INVALID`, `TOKEN_EXPIRED`, `VALIDATION_FAILED`, `DEMO_ACCOUNT_READONLY` (403).
+- `POST /auth/logout` — web đọc cookie, native gửi body `{ "refreshToken" }` → `204`; web nhận thêm `Set-Cookie` xóa cookie `moment_rt`.
+- `POST /auth/reset-password` — body `{ "token", "newPassword" }` → `204`. `newPassword` theo cùng quy tắc với đăng ký. Lỗi: `TOKEN_INVALID`, `TOKEN_EXPIRED`, `VALIDATION_FAILED`, `DEMO_ACCOUNT_READONLY` (403).
 
 ### 3.2 Hồ sơ của tôi
 
@@ -123,9 +126,9 @@ Chi tiết:
 | GET | `/friends` | Có | Danh sách bạn bè | US-12 |
 | DELETE | `/friends/{userId}` | Có | Hủy kết bạn | US-13 |
 
-- `GET /invites/me`, `POST /invites/me/rotate` → `200 { "code": "k7Q2mX9a", "url": "https://<tên-miền>/invite/k7Q2mX9a" }`. Mã QR do client tạo từ `url`.
+- `GET /invites/me`, `POST /invites/me/rotate` → `200 { "code": "k7Q2mX9a", "url": "https://<tên-miền>/invite?code=k7Q2mX9a" }`. Mã gồm 8 chữ và số; `GET /invites/me` tạo mã lần đầu nếu chưa có. Link dùng tham số `code` để frontend xuất tĩnh mở được trên mọi host (D-032). Mã QR do client tạo từ `url`.
 - `GET /invites/{code}` → `200 { "inviter": { "username", "displayName", "avatarUrl" } }`. Lỗi: `INVITE_INVALID` (404).
-- `POST /invites/{code}/accept` → `200 { "friend": <user tóm tắt>, "alreadyFriends": false }`; đã là bạn → `200` với `"alreadyFriends": true`. Lỗi: `INVITE_INVALID` (404), `INVITE_SELF` (422), `FRIEND_LIMIT_REACHED` (422, trường `detail` cho biết bên nào đủ 15).
+- `POST /invites/{code}/accept` → `200 { "friend": <user tóm tắt>, "alreadyFriends": false }`; đã là bạn → `200` với `"alreadyFriends": true`. Lỗi: `INVITE_INVALID` (404), `INVITE_SELF` (422), `FRIEND_LIMIT_REACHED` (422, trường `detail` cho biết bên nào đủ 15: người bấm kết bạn hay người mời). Thứ tự kiểm tra: mã sai → tự mời mình → đã là bạn → giới hạn 15.
 - `GET /friends` → `200 { "items": [ { "id", "username", "displayName", "avatarUrl", "friendsSince" } ], "count": 12, "limit": 15 }`. Không phân trang vì tối đa 15.
 - `DELETE /friends/{userId}` → `204`. Không phải bạn → `404 NOT_FOUND`.
 
@@ -182,7 +185,9 @@ Quy tắc kiểm tra khi tạo:
 - `caption`, `layers` theo BR-11 và mục 5 của thiết kế database.
 - `trimStartMs` chỉ dùng cho video tải lên.
 
-Lỗi: `VALIDATION_FAILED`, `UNSUPPORTED_MEDIA_TYPE` (415), `PAYLOAD_TOO_LARGE` (413), `NO_FRIENDS` (422), `NOT_FRIENDS` (422, `errors` liệt kê id không hợp lệ).
+Lỗi: `VALIDATION_FAILED`, `UNSUPPORTED_MEDIA_TYPE` (415), `PAYLOAD_TOO_LARGE` (413), `NO_FRIENDS` (422), `NOT_FRIENDS` (422, mỗi id không phải bạn là một phần tử `errors` với `field: "recipientIds"`, `code: "NOT_FRIENDS"`).
+
+Presigned URL tải lên ký cả `Content-Type` và dung lượng khai báo: client phải PUT đúng header trong `headers` và đúng số byte. Khi có lớp `caption`, cột `caption` lấy chữ của lớp đó. `layersVersion` hiện chỉ nhận `1`.
 
 **Báo tải xong** — `POST /moments/{id}/complete`, không body → `202` moment ở trạng thái `PROCESSING`. Server kiểm tra từng file đã có trong object storage và dung lượng khớp khai báo. Lỗi: `UPLOAD_INCOMPLETE` (409), `MOMENT_NOT_DRAFT` (409), `NOT_FOUND`.
 

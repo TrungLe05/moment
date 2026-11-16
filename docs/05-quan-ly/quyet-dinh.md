@@ -22,6 +22,7 @@ Cột "Đề xuất" là phương án đang ghi trong tài liệu (hoặc Claude
 | Q-010 | Tên miền và nhà cung cấp VPS? | Chưa có đề xuất | T-012, T-166 |
 | Q-011 | Dùng dịch vụ gì để gửi email (xác thực, đặt lại mật khẩu) khi triển khai? Phần dev đã chốt Mailpit (D-008); backend gửi qua SMTP chuẩn nên production chỉ đổi cấu hình | Chưa có đề xuất; cần chốt trước T-166 | T-164, T-166 |
 | Q-021 | Production phục vụ frontend tĩnh, TLS và chuyển tiếp `/api` bằng gì? Tài liệu chưa ghi | Chưa có đề xuất | T-164 |
+| Q-022 | BR-03 không nói trường hợp đăng nhập Google trùng email của một tài khoản email **chưa xác thực**. Nếu liên kết thẳng, người đăng ký giả email đó (biết mật khẩu) sẽ vào được tài khoản sau khi chủ thật dùng Google | Đã làm tạm theo đề xuất: xác thực tài khoản đó và bỏ mật khẩu cũ (`UserService.claimUnverifiedAccountByGoogle`). Phương án khác: báo lỗi, bắt xác thực email trước | T-114 (đã làm, cần xác nhận) |
 
 ## Đã chốt
 
@@ -65,4 +66,6 @@ Các quyết định sản phẩm đã chốt trước ngày 16/11/2026 (nền t
 | D-027 | (Q-016) Tài khoản demo thao tác bình thường, chỉ khóa đổi mật khẩu và xóa tài khoản; script seed chạy lại hằng ngày | 16/11/2026 | [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) |
 | D-028 | (Q-017) Server chuẩn hóa emoji trước khi kiểm tra (`❤` không có U+FE0F thành `❤️`) | 16/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md) |
 | D-029 | (Q-018) Job dọn khoảnh khắc `FAILED` tạo quá 7 ngày (mọi chế độ), kèm việc xóa file | 16/11/2026 | [Thiết kế database](../02-ky-thuat/thiet-ke-database.md) |
+| D-031 | Dependency đã duyệt: backend `spring-boot-starter-oauth2-resource-server` (JWT, xác minh Google ID token), `spring-boot-starter-mail`, Bucket4j, AWS SDK v2 S3 (dùng khi làm object storage); frontend shadcn/ui (và các gói nó cài: `@base-ui/react`, `class-variance-authority`, `cn`, `lucide-react`, `tw-animate-css`), Vitest, Testing Library, jsdom, thư viện QR `qrcode.react`. `@types/node` nâng lên ^24 cho khớp Node 24 (D-007) | 16/11/2026 | `backend/pom.xml`, `frontend/package.json` |
+| D-032 | Link mời có dạng `/invite?code=<mã>` thay cho `/invite/<mã>`, vì frontend xuất tĩnh không tạo được trang cho mã bất kỳ khi host không có rewrite (Q-021 còn mở) | 16/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md) |
 | D-030 | (Q-019) Bỏ `note` khỏi database và API ở MVP; ghi chú dài trong kế hoạch và định hướng giao diện chuyển thành "để sau MVP" | 16/11/2026 | [Thiết kế database](../02-ky-thuat/thiet-ke-database.md), [Danh sách API](../02-ky-thuat/danh-sach-api.md), [Kế hoạch tổng quan](../00-tong-quan/ke-hoach-tong-quan.md), [Định hướng giao diện](../03-giao-dien/dinh-huong-giao-dien.md) |

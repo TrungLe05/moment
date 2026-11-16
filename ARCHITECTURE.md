@@ -91,16 +91,17 @@ Trong một tính năng, luồng đi một chiều: Controller (mỏng, chỉ nh
 
 ### Frontend
 
-**[Đề xuất]**
+Đã dựng ở T-103, T-107:
 
 | Thư mục | Chứa |
 | --- | --- |
-| `src/app/` | Route của Next.js (chỉ trang tĩnh; route động như `/moment/[id]` xử lý phía client, cách làm cụ thể chốt ở T-103) |
-| `src/features/<tính năng>/` | Component, hook, lời gọi API của từng tính năng: `auth`, `friends`, `composer`, `feed`, `archive`, `settings` |
+| `src/app/` | Route của Next.js, chỉ trang tĩnh; mỗi trang bọc `PageGate` để chờ khôi phục phiên và điều hướng theo trạng thái. Route động như `/moment/[id]` xử lý phía client, chốt khi làm T-141 |
+| `src/features/<tính năng>/` | Component và hook của từng tính năng: đã có `auth` (phiên đăng nhập, form), `onboarding`, `settings`, `home`, `friends`, `invite`; sau thêm `composer`, `feed`, `archive` |
 | `src/platform/` | Interface phụ thuộc nền tảng và bản cài đặt cho web (mục 7) |
-| `src/lib/api/` | Client HTTP chung: gắn access token, tự refresh, đọc lỗi Problem Details theo `code` |
+| `src/lib/api/` | Client HTTP chung: gắn access token, tự refresh một lần khi 401 (gộp các request cùng lúc), đọc lỗi Problem Details theo `code`; hàm gọi từng endpoint |
 | `src/i18n/` | Chuỗi giao diện `vi` và `en` |
-| `src/components/ui/` | Component shadcn/ui dùng chung |
+| `src/components/ui/` | Component shadcn/ui dùng chung (style `base-nova`) |
+| `src/components/` | Component dùng chung tự viết: `FormField`, `AuthLayout`, `PageGate` |
 
 ## 4. Luồng chính
 
