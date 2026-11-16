@@ -1,23 +1,23 @@
 # Tiến độ
 
-Cập nhật: 16/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Quyết định và câu hỏi mở](quyet-dinh.md)
+Cập nhật: 17/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Quyết định và câu hỏi mở](quyet-dinh.md)
 
 ## Trạng thái hiện tại
 
-Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền tảng của giai đoạn 1. Bộ tài liệu thiết kế đã có bản nháp 1. Đã có hạ tầng dev (Compose: PostgreSQL, RustFS, Mailpit), `.env.example`, khung backend Spring Boot và frontend Next.js tối thiểu, CI GitHub Actions (job đẩy image lên Docker Hub tạm tắt đến release v1). Repo đã push lần đầu lên `main`, CI xanh; quy ước nhánh `main` / `develop` / nhánh làm việc / `release/*` ở D-012.
+Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism, VPS và ước lượng. Bộ tài liệu thiết kế đã có bản nháp 1. Đã có hạ tầng dev (Compose: PostgreSQL, RustFS, Mailpit), `.env.example`, khung backend Spring Boot và frontend Next.js tối thiểu, CI GitHub Actions (job đẩy image lên Docker Hub tạm tắt đến release v1). Repo đã push lần đầu lên `main`, CI xanh; quy ước nhánh `main` / `develop` / nhánh làm việc / `release/*` ở D-012.
 
-Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Code nằm trên 4 PR nối tiếp nhau, chưa merge vào `develop`. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
+Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143).
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144).
 
-**Việc kế tiếp:** lưu giữ và xóa (T-144), giao diện chụp và soạn (T-133 → T-137), kho (T-151), ảnh đại diện (T-116).
+**Việc kế tiếp:** kho (T-151), job định kỳ hết hạn và dọn dẹp (T-161), giao diện chụp và soạn (T-133 → T-137), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 24 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết khoảnh khắc, feed và reaction xong (T-131, T-132, T-141 → T-143); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 25 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết, feed, reaction, lưu giữ và xóa xong (T-131, T-132, T-141 → T-144); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,14 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 17/11/2026 · T-144 lưu giữ và xóa
+
+- PR #13 (T-143) đã merge vào `develop`, CI xanh. Cập nhật đồ thị graphify (2.103 nút, 6.017 cạnh, 115 cụm, không có vòng import).
+- Backend, test trước (10 test): `POST /moments/{id}/keep` theo câu lệnh có điều kiện ở DB mục 7 (BR-16), đã lưu giữ thì trả nguyên; `DELETE /moments/{id}` xóa ở mọi trạng thái, khóa dòng trước khi đọc file, tạo việc `DELETE_OBJECTS` cùng transaction (BR-18). Chốt mã trả về của xóa (D-037). 158 test backend pass.
+- Frontend: thẻ của mình có nút "Lưu giữ" (chỉ khi đang chia sẻ, nhãn đổi ngay) và "Xóa" có hộp xác nhận; lỗi báo theo mã. 6 test mới, 51 test frontend pass; lint, kiểm tra kiểu, build đều qua.
+- Chạy thật trên trình duyệt: lưu giữ (POST 200, nhãn "còn 22 giờ" thành "lưu giữ"), xóa có xác nhận (thẻ biến mất, dòng và reaction bị xóa), worker chạy xong việc xóa 4 file.
+- Sửa phần "Trạng thái hiện tại" đã cũ (giai đoạn, câu "chưa merge vào develop").
 
 ### 16/11/2026 · T-143 reaction
 
