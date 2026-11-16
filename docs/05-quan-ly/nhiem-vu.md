@@ -50,7 +50,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | T-101 | Khởi tạo git repo, `.gitignore`, `.gitattributes` cố định line ending | Must | Xong | Chủ dự án đã `git init` và push lần đầu lên `main`; quy ước nhánh ở D-012 |
-| T-102 | Khung backend Spring Boot (Web, Security, Data JPA, Validation, Flyway), profile `api` và `worker` | Must | Chưa làm | Khung tối thiểu đã có (Boot 4.1.2, `com.dev.moment`, health, bảo mật tạm, Dockerfile, 3 test pass); profile `api`/`worker` làm cùng worker (T-132) |
+| T-102 | Khung backend Spring Boot (Web, Security, Data JPA, Validation, Flyway), profile `api` và `worker` | Must | Xong | Profile mặc định `api`; profile `worker` bật lịch hỏi hàng đợi, cổng 8090; Dockerfile có stage `worker` cài ffmpeg (D-034) |
 | T-103 | Khung frontend Next.js `output: 'export'`, Tailwind, shadcn/ui, i18n vi/en | Must | Xong | shadcn/ui, `I18nProvider` (ngôn ngữ trình duyệt, ngôn ngữ tài khoản), client API chung, `PageGate` |
 | T-104 | Docker Compose cho dev: PostgreSQL 16, RustFS, Mailpit | Must | Xong | `compose.yaml`; đã chạy: 4 service lên, bucket riêng tư, ghi/đọc S3 được (D-008, D-009, D-010) |
 | T-105 | Migration `V1__init.sql` theo thiết kế database | Must | Xong | 11 bảng; test kiểm tra bảng, unique email, định dạng username |
@@ -87,7 +87,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | T-131 | API tạo khoảnh khắc, cấp presigned URL, `complete`, `retry` | Must | Xong | API mục 3.4, 5; object storage qua AWS SDK v2, test với RustFS thật |
-| T-132 | Media worker: lấy việc từ `media_jobs`, ffmpeg cho ảnh và video, thumbnail, thử lại 3 lần | Must | Chưa làm | ADR 0003, DB mục 6 |
+| T-132 | Media worker: lấy việc từ `media_jobs`, ffmpeg cho ảnh và video, thumbnail, thử lại 3 lần | Must | Xong | ADR 0003, DB mục 6, D-033; 15 test với ffmpeg, PostgreSQL, RustFS thật; có cả việc `DELETE_OBJECTS` |
 | T-133 | Chụp ảnh và quay video 5 giây bằng camera | Must | Chưa làm | US-20, US-21 |
 | T-134 | Tải ảnh/video từ máy, chọn đoạn 5 giây, nhãn "tải lên" | Must | Chưa làm | US-22, BR-09, BR-10 |
 | T-135 | Trình soạn lớp trang trí: caption, sticker, biểu ngữ, đếm theo grapheme | Must | Chưa làm | US-23, US-24, BR-11, ADR 0002 |
