@@ -56,7 +56,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-105 | Migration `V1__init.sql` theo thiết kế database | Must | Xong | 11 bảng; test kiểm tra bảng, unique email, định dạng username |
 | T-106 | Hạ tầng chung backend: lỗi RFC 9457, `X-Request-Id`, `Accept-Language`, CORS theo danh sách origin | Must | Xong | Gói `common`: `ErrorCode`, `GlobalExceptionHandler`, `RequestIdFilter`, `Clock`, `GraphemeCounter`, `@MaxGraphemes`; 18 test pass |
 | T-107 | Lớp interface nền tảng ở frontend (`CameraService`, `NotificationService`, `ShareService`, `TokenStore`, `GoogleSignIn`), bản web | Must | Xong | `src/platform/`; `NotificationService` bản web chưa hỗ trợ (MVP không dùng) |
-| T-108 | Thiết lập kiểm thử: unit, integration với Testcontainers (PostgreSQL, RustFS), công cụ E2E | Must | Đang làm | Backend Testcontainers PostgreSQL, frontend Vitest + Testing Library đã chạy trong CI; RustFS thêm khi có code storage; công cụ E2E chưa chọn |
+| T-108 | Thiết lập kiểm thử: unit, integration với Testcontainers (PostgreSQL, RustFS), công cụ E2E | Must | Đang làm | Backend Testcontainers PostgreSQL và RustFS, frontend Vitest + Testing Library đã chạy trong CI; công cụ E2E chưa chọn |
 | T-109 | CI/CD GitHub Actions: test backend, build frontend, đẩy image backend lên Docker Hub | Must | Xong | D-011; job backend và frontend xanh trên GitHub ở lần push đầu (chủ dự án xác nhận); job đẩy image tạm tắt (D-013) |
 | T-110 | Bật lại job đẩy image backend lên Docker Hub khi release v1 | Must | Chờ | D-013; chờ có chức năng ổn định. Cần biến `DOCKERHUB_USERNAME`, secret `DOCKERHUB_TOKEN` |
 
@@ -86,7 +86,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-131 | API tạo khoảnh khắc, cấp presigned URL, `complete`, `retry` | Must | Chưa làm | API mục 3.4, 5 |
+| T-131 | API tạo khoảnh khắc, cấp presigned URL, `complete`, `retry` | Must | Xong | API mục 3.4, 5; object storage qua AWS SDK v2, test với RustFS thật |
 | T-132 | Media worker: lấy việc từ `media_jobs`, ffmpeg cho ảnh và video, thumbnail, thử lại 3 lần | Must | Chưa làm | ADR 0003, DB mục 6 |
 | T-133 | Chụp ảnh và quay video 5 giây bằng camera | Must | Chưa làm | US-20, US-21 |
 | T-134 | Tải ảnh/video từ máy, chọn đoạn 5 giây, nhãn "tải lên" | Must | Chưa làm | US-22, BR-09, BR-10 |

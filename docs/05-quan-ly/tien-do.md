@@ -8,14 +8,14 @@ Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Code nằm trên 4 PR nối tiếp nhau, chưa merge vào `develop`. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-**Việc kế tiếp:** object storage và tạo khoảnh khắc (T-131), ảnh đại diện (T-116), media worker (T-132).
+**Việc kế tiếp:** media worker (T-132), quyền xem và chi tiết khoảnh khắc (T-141), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 18 / 40 | Nền tảng và E1 gần xong; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 19 / 40 | Nền tảng và E1 gần xong; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -23,6 +23,13 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 16/11/2026 · T-131 tạo khoảnh khắc
+
+- Tự review PR #8 bằng code-review: sửa tạo mã mời lần đầu bị đua (ON CONFLICT DO NOTHING), người mời bị xóa trả INVITE_INVALID, bỏ tải lại thừa; đã merge #8. PR #7 để chủ dự án merge bypass (GitGuardian bắt nhầm).
+- Mô hình hóa code bằng graphify (phần code): 1.321 nút, 3.464 cạnh, 82 cụm; kết quả ở `graphify-out/` (không commit).
+- Viết test trước (20 test) rồi code: `POST /moments`, `complete`, `retry`; presigned PUT có ký Content-Type và dung lượng; kiểm tra file bằng HEAD ngoài transaction; chuyển trạng thái có điều kiện; tạo việc `PROCESS_MOMENT` cùng transaction. Testcontainers thêm RustFS thật (khóa sinh ngẫu nhiên). 94 test backend pass.
+- Chưa làm: giao diện soạn và đăng (T-133 → T-137), worker xử lý (T-132).
 
 ### 16/11/2026 · E2 bạn bè
 
