@@ -4,6 +4,7 @@ import com.dev.moment.common.error.ErrorCode;
 import com.dev.moment.common.error.ProblemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -26,6 +27,9 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/api/v1/auth/logout").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        // Trang mời xem được khi chưa đăng nhập (US-11); /invites/me vẫn cần đăng nhập.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/invites/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/invites/*").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer
                         .jwt(Customizer.withDefaults())

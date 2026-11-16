@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-/** Bảng friendships: mỗi cặp một dòng, user_a_id < user_b_id. Kết bạn, hủy kết bạn làm ở E2 (T-122, T-123). */
+/** Bảng friendships: mỗi cặp một dòng, user_a_id < user_b_id (theo thứ tự uuid của PostgreSQL). */
 @Entity
 @Table(name = "friendships")
 class Friendship {
@@ -21,6 +21,19 @@ class Friendship {
     private Instant createdAt;
 
     protected Friendship() {
+    }
+
+    Friendship(UserPair pair, Instant now) {
+        this.id = new FriendshipId(pair.first(), pair.second());
+        this.createdAt = now;
+    }
+
+    UUID otherThan(UUID userId) {
+        return id.userAId().equals(userId) ? id.userBId() : id.userAId();
+    }
+
+    Instant getCreatedAt() {
+        return createdAt;
     }
 
     @Embeddable
