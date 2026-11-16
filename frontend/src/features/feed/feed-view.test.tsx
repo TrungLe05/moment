@@ -10,7 +10,8 @@ import { FeedView } from "./feed-view";
 const feed = vi.fn<(cursor: string | null) => Promise<MomentPage>>();
 const detail = vi.fn<(id: string) => Promise<Moment>>();
 
-vi.mock("@/lib/api/moments", () => ({
+vi.mock("@/lib/api/moments", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/moments")>()),
   momentsApi: {
     feed: (cursor: string | null) => feed(cursor),
     detail: (id: string) => detail(id),

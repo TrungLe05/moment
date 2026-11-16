@@ -1,4 +1,4 @@
-package com.dev.moment.moment;
+package com.dev.moment.support;
 
 import static com.dev.moment.support.ApiTestClient.randomIp;
 import static com.dev.moment.support.ApiTestClient.uniqueEmail;
@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-import com.dev.moment.support.ApiTestClient;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -18,48 +17,48 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /** Dựng người dùng, bạn bè và khoảnh khắc cho test xem khoảnh khắc (chi tiết, feed) mà không cần chạy ffmpeg. */
-class MomentFixtures {
+public class MomentFixtures {
 
-    record TestUser(UUID id, String accessToken) {
+    public record TestUser(UUID id, String accessToken) {
     }
 
     private final MockMvc mockMvc;
     private final ApiTestClient api;
     private final JdbcTemplate jdbcTemplate;
 
-    MomentFixtures(MockMvc mockMvc, ApiTestClient api, JdbcTemplate jdbcTemplate) {
+    public MomentFixtures(MockMvc mockMvc, ApiTestClient api, JdbcTemplate jdbcTemplate) {
         this.mockMvc = mockMvc;
         this.api = api;
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    TestUser newUser() throws Exception {
+    public TestUser newUser() throws Exception {
         String username = "f" + UUID.randomUUID().toString().replace("-", "").substring(0, 14);
         String accessToken = api.accessTokenForOnboardedUser(uniqueEmail(), username);
         return new TestUser(UUID.fromString(api.read(api.me(accessToken)).get("id").asString()), accessToken);
     }
 
     /** Một người bạn mới của owner qua mã mời. */
-    TestUser befriend(TestUser owner) throws Exception {
+    public TestUser befriend(TestUser owner) throws Exception {
         TestUser friend = newUser();
         befriend(owner, friend);
         return friend;
     }
 
-    void befriend(TestUser owner, TestUser friend) throws Exception {
+    public void befriend(TestUser owner, TestUser friend) throws Exception {
         String code = api.read(as(get("/api/v1/invites/me"), owner)).get("code").asString();
         MockHttpServletResponse accepted = mockMvc.perform(post("/api/v1/invites/{code}/accept", code)
                 .header("Authorization", "Bearer " + friend.accessToken()).with(randomIp())).andReturn().getResponse();
         assertThat(accepted.getStatus()).as(accepted.getContentAsString()).isEqualTo(200);
     }
 
-    MockHttpServletResponse as(MockHttpServletRequestBuilder request, TestUser user) throws Exception {
+    public MockHttpServletResponse as(MockHttpServletRequestBuilder request, TestUser user) throws Exception {
         return mockMvc.perform(request.header("Authorization", "Bearer " + user.accessToken())).andReturn()
                 .getResponse();
     }
 
     /** Bản nháp ảnh tạo qua API (file chưa tải lên). */
-    String draftPhoto(TestUser owner, String audience, List<String> recipientIds) throws Exception {
+    public String draftPhoto(TestUser owner, String audience, List<String> recipientIds) throws Exception {
         Map<String, Object> body = new HashMap<>();
         body.put("mediaType", "PHOTO");
         body.put("source", "CAMERA");
@@ -77,7 +76,7 @@ class MomentFixtures {
     }
 
     /** Khoảnh khắc ảnh ở trạng thái READY như sau khi worker xử lý (T-132). */
-    String readyPhoto(TestUser owner, String audience, List<String> recipientIds) throws Exception {
+    public String readyPhoto(TestUser owner, String audience, List<String> recipientIds) throws Exception {
         String momentId = draftPhoto(owner, audience, recipientIds);
         jdbcTemplate.update("UPDATE moments SET status = 'READY', width = 1440, height = 1080, processed_at = now() "
                 + "WHERE id = ?::uuid", momentId);
@@ -89,11 +88,11 @@ class MomentFixtures {
         return momentId;
     }
 
-    String readyPhotoForAll(TestUser owner) throws Exception {
+    public String readyPhotoForAll(TestUser owner) throws Exception {
         return readyPhoto(owner, "ALL", List.of());
     }
 
-    void keep(String momentId) {
+    public void keep(String momentId) {
         jdbcTemplate.update("UPDATE moments SET mode = 'KEPT', kept_at = created_at WHERE id = ?::uuid", momentId);
     }
 
@@ -101,7 +100,7 @@ class MomentFixtures {
      * Lùi created_at, expires_at, kept_at thay vì tua đồng hồ: tua 24 giờ thì access token (15 phút) của người xem
      * hết hạn.
      */
-    void shiftIntoPast(String momentId, Duration age) {
+    public void shiftIntoPast(String momentId, Duration age) {
         String interval = age.toSeconds() + " seconds";
         jdbcTemplate.update("UPDATE moments SET created_at = created_at - ?::interval, "
                 + "expires_at = expires_at - ?::interval, kept_at = kept_at - ?::interval WHERE id = ?::uuid",

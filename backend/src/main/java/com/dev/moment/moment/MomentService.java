@@ -7,6 +7,7 @@ import com.dev.moment.friend.FriendService;
 import com.dev.moment.job.MediaJobService;
 import com.dev.moment.media.MediaRules;
 import com.dev.moment.media.ObjectStorage;
+import com.dev.moment.reaction.ReactionService;
 import com.dev.moment.user.UserService;
 import com.dev.moment.user.UserSummary;
 import jakarta.persistence.EntityManager;
@@ -48,6 +49,7 @@ class MomentService {
     private final UserService userService;
     private final MediaJobService mediaJobService;
     private final MomentAccessPolicy accessPolicy;
+    private final ReactionService reactionService;
     private final ObjectStorage storage;
     private final EntityManager entityManager;
     private final TransactionTemplate transactionTemplate;
@@ -56,7 +58,8 @@ class MomentService {
 
     MomentService(MomentRepository moments, MomentMediaRepository media,
             MomentRecipientRepository recipients, FriendService friendService, UserService userService,
-            MediaJobService mediaJobService, MomentAccessPolicy accessPolicy, ObjectStorage storage,
+            MediaJobService mediaJobService, MomentAccessPolicy accessPolicy, ReactionService reactionService,
+            ObjectStorage storage,
             EntityManager entityManager,
             TransactionTemplate transactionTemplate, JsonMapper jsonMapper, Clock clock) {
         this.moments = moments;
@@ -66,6 +69,7 @@ class MomentService {
         this.userService = userService;
         this.mediaJobService = mediaJobService;
         this.accessPolicy = accessPolicy;
+        this.reactionService = reactionService;
         this.storage = storage;
         this.entityManager = entityManager;
         this.transactionTemplate = transactionTemplate;
@@ -113,7 +117,7 @@ class MomentService {
                 })
                 .toList();
         return new MomentResponse.Created(
-                toResponse(moment, true, chosenRecipients.size(), files, ownerOf(moment)), uploads);
+                toResponse(moment, true, chosenRecipients.size(), files, ownerOf(moment), null, 0), uploads);
     }
 
     /** US-28: kiểm tra từng file đã có trên storage, đúng dung lượng khai báo, rồi bắt đầu xử lý. */
@@ -181,14 +185,18 @@ class MomentService {
         return responseFor(ownerId, ownedMoment(ownerId, momentId));
     }
 
-    // Số người nhận chỉ chủ mới thấy (ownerView), nên chỉ đếm khi người xem là chủ.
     private MomentResponse responseFor(UUID viewerId, Moment moment) {
-        boolean mine = moment.getOwnerId().equals(viewerId);
-        int recipientCount = mine ? (int) recipients.countByMomentId(moment.getId()) : 0;
-        return toResponse(moment, mine, recipientCount, media.findAllByMomentId(moment.getId()), ownerOf(moment));
+        List<MomentResponse> responses = responsesFor(viewerId, List.of(moment));
+        if (responses.isEmpty()) {
+            throw new ApiException(ErrorCode.NOT_FOUND);
+        }
+        return responses.getFirst();
     }
 
-    // Một trang có tới 30 khoảnh khắc: lấy file, chủ và số người nhận theo lô, không truy vấn từng cái (CLAUDE.md, N+1).
+    /**
+     * Một trang có tới 30 khoảnh khắc: lấy file, chủ, số người nhận và reaction theo lô, không truy vấn từng cái
+     * (CLAUDE.md, N+1). Số người nhận và số reaction chỉ chủ thấy (ownerView); myReaction chỉ người khác thấy (API mục 4).
+     */
     private List<MomentResponse> responsesFor(UUID viewerId, List<Moment> page) {
         if (page.isEmpty()) {
             return List.of();
@@ -200,6 +208,10 @@ class MomentService {
                 page.stream().map(Moment::getOwnerId).collect(Collectors.toSet()));
         List<UUID> mine = page.stream().filter(moment -> moment.getOwnerId().equals(viewerId)).map(Moment::getId)
                 .toList();
+        List<UUID> others = page.stream().filter(moment -> !moment.getOwnerId().equals(viewerId)).map(Moment::getId)
+                .toList();
+        Map<UUID, Long> reactionCounts = reactionService.counts(mine);
+        Map<UUID, String> myReactions = reactionService.myReactions(viewerId, others);
         Map<UUID, Long> recipientCounts = new HashMap<>();
         if (!mine.isEmpty()) {
             for (Object[] row : recipients.countByMomentIds(mine)) {
@@ -215,7 +227,8 @@ class MomentService {
             }
             boolean isMine = moment.getOwnerId().equals(viewerId);
             responses.add(toResponse(moment, isMine, recipientCounts.getOrDefault(moment.getId(), 0L).intValue(),
-                    files.getOrDefault(moment.getId(), List.of()), owner));
+                    files.getOrDefault(moment.getId(), List.of()), owner, myReactions.get(moment.getId()),
+                    reactionCounts.getOrDefault(moment.getId(), 0L).intValue()));
         }
         return responses;
     }
@@ -292,16 +305,17 @@ class MomentService {
     }
 
     private MomentResponse toResponse(Moment moment, boolean mine, int recipientCount, List<MomentMedia> files,
-            UserSummary owner) {
-        // API mục 4: ownerView chỉ có với chủ. Đếm reaction và myReaction làm cùng T-143.
+            UserSummary owner, String myReaction, int reactionCount) {
+        // API mục 4: ownerView chỉ có với chủ, myReaction chỉ có với người khác.
         MomentResponse.OwnerView ownerView = mine
-                ? new MomentResponse.OwnerView(moment.getAudience().name(), recipientCount, 0, moment.getFailureReason())
+                ? new MomentResponse.OwnerView(moment.getAudience().name(), recipientCount, reactionCount,
+                        moment.getFailureReason())
                 : null;
         return new MomentResponse(moment.getId(), mine, owner, moment.getMediaType().name(), moment.getSource().name(),
                 moment.getMode().name(), moment.getStatus().name(), moment.getCaption(),
                 jsonMapper.readTree(moment.getLayers()), moment.getLayersVersion(), moment.getWidth(),
                 moment.getHeight(), moment.getDurationMs(), moment.getCreatedAt(), moment.getExpiresAt(),
-                moment.getKeptAt(), mediaUrls(moment, files), null, ownerView);
+                moment.getKeptAt(), mediaUrls(moment, files), mine ? null : myReaction, ownerView);
     }
 
     // URL đọc file chỉ cấp khi khoảnh khắc đã sẵn sàng (API mục 4), và chỉ cho bản do worker tạo;

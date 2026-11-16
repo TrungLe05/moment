@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/lib/api";
-import { momentsApi, type Moment } from "@/lib/api/moments";
+import { momentsApi, type Moment, type ReactionEmoji } from "@/lib/api/moments";
 
 export type FeedStatus = "loading" | "idle" | "done" | "error";
 
@@ -22,6 +22,8 @@ export function useFeed() {
   const [error, setError] = useState<unknown>(null);
   const loading = useRef(true);
   const lastRefresh = useRef(new Map<string, number>());
+  // Lần bấm reaction mới nhất của từng khoảnh khắc: phản hồi về muộn của lần bấm cũ không được ghi đè lựa chọn mới.
+  const reactionRequest = useRef(new Map<string, number>());
 
   const applyPage = useCallback((page: { items: Moment[]; nextCursor: string | null }, append: boolean) => {
     setItems((current) => (append ? appendUnique(current, page.items) : page.items));
@@ -82,5 +84,38 @@ export function useFeed() {
     }
   }, []);
 
-  return { items, status, error, loadMore, refreshMoment };
+  const setMyReaction = useCallback((id: string, myReaction: string | null) => {
+    setItems((current) => current.map((moment) => (moment.id === id ? { ...moment, myReaction } : moment)));
+  }, []);
+
+  /**
+   * US-32, BR-21: thả emoji khác thì thay, thả lại đúng emoji đang chọn thì gỡ. Đổi ngay trên giao diện rồi mới gọi API;
+   * lỗi thì trả lại emoji cũ và ném lỗi để thanh reaction báo.
+   */
+  const toggleReaction = useCallback(
+    async (moment: Moment, emoji: ReactionEmoji) => {
+      const previous = moment.myReaction;
+      const next = previous === emoji ? null : emoji;
+      const request = (reactionRequest.current.get(moment.id) ?? 0) + 1;
+      reactionRequest.current.set(moment.id, request);
+      const isLatest = () => reactionRequest.current.get(moment.id) === request;
+      setMyReaction(moment.id, next);
+      try {
+        if (next === null) {
+          await momentsApi.unreact(moment.id);
+        } else {
+          const saved = (await momentsApi.react(moment.id, next)).emoji;
+          if (isLatest()) setMyReaction(moment.id, saved);
+        }
+      } catch (caught: unknown) {
+        // Chỉ lần bấm mới nhất được trả lại trạng thái cũ; lần cũ hơn đã bị lựa chọn sau thay thế.
+        if (!isLatest()) return;
+        setMyReaction(moment.id, previous);
+        throw caught;
+      }
+    },
+    [setMyReaction],
+  );
+
+  return { items, status, error, loadMore, refreshMoment, toggleReaction };
 }

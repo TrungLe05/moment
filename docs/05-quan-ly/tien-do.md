@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 0 (chuẩn bị), đã bắt đầu phần nền
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Code nằm trên 4 PR nối tiếp nhau, chưa merge vào `develop`. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142).
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143).
 
-**Việc kế tiếp:** reaction (T-143), lưu giữ và xóa (T-144), giao diện chụp và soạn (T-133 → T-137), ảnh đại diện (T-116).
+**Việc kế tiếp:** lưu giữ và xóa (T-144), giao diện chụp và soạn (T-133 → T-137), kho (T-151), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 23 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết khoảnh khắc và feed xong (T-131, T-132, T-141, T-142); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 24 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết khoảnh khắc, feed và reaction xong (T-131, T-132, T-141 → T-143); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -26,12 +26,19 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
 
+### 16/11/2026 · T-143 reaction
+
+- PR #12 (T-142) đã merge vào `develop`. Đã xem feed có dữ liệu thật trên trình duyệt: nhãn, video cắt từ giây 1, tự dừng khi cuộn đi, cuộn dính, dòng hết feed đều đúng. Lần đầu API treo vì `mvnw verify` ghi đè file jar đang chạy; từ giờ chạy thử từ bản sao jar.
+- Backend, test trước (10 test): gói `reaction` với `PUT`, `DELETE /moments/{id}/reaction` và `GET /moments/{id}/reactions`; upsert một câu lệnh (BR-21), chuẩn hóa emoji (D-028), chủ không tự thả (BR-23), quyền xem qua `MomentAccessPolicy.ownerOfViewable` (BR-24), chỉ chủ xem danh sách (BR-22). Đối tượng khoảnh khắc có `myReaction` và `ownerView.reactionCount`, lấy theo lô. Chốt ba chỗ đặc tả chưa nói (D-036). `MomentFixtures` chuyển sang gói `support`. 148 test backend pass.
+- Frontend: thanh 6 emoji dưới thẻ của bạn bè (đổi ngay trên giao diện, lỗi thì trả lại và báo), bấm lại emoji đang chọn thì gỡ; thẻ của mình hiện "X lượt thả cảm xúc", mở ra xem ai thả gì. 7 test mới, 45 test frontend pass; lint, kiểm tra kiểu, build đều qua. Tự review sửa: phản hồi reaction về sai thứ tự không ghi đè lựa chọn mới, danh sách của chủ chỉ hiện kết quả request mới nhất và cập nhật số lượt, chỉ vi phạm khóa ngoại mới coi là khoảnh khắc đã xóa.
+- Chạy thật trên trình duyệt: thả 🔥 (PUT 200, tải lại vẫn còn), bấm lại để gỡ (DELETE 204), danh sách của chủ hiện "Minh 😍".
+
 ### 16/11/2026 · T-142 feed
 
 - PR #11 (T-141) đã merge vào `develop`; commit cuối không tự chạy CI nên kích hoạt tay rồi mới merge.
 - Backend, test trước (10 test): `GET /feed` lọc theo cùng quy tắc với `MomentAccessPolicy` (READY, trước `expiresAt`, của tôi hoặc gửi cho tôi từ bạn), mới nhất trước, con trỏ mờ `(created_at, id)`, lấy file, chủ và số người nhận theo lô (không N+1). Chốt cách báo lỗi `limit`, `cursor` (D-035). Tách `MomentFixtures` dùng chung cho test chi tiết và feed.
 - Frontend: trang chủ là feed nền tối theo bản mẫu (nền `#0E0E10`, nhấn cam đào), vuốt dọc dính theo từng thẻ, tải thêm khi tới cuối, nhãn "tên · X phút", "còn X giờ/phút", "lưu giữ", "tải lên" (BR-09); video tự phát không tiếng, lặp, nút bật tiếng, chỉ phát khi đang hiện; khoảnh khắc hết 24 giờ tự rời feed; ảnh lỗi (URL hết hạn) thì lấy lại, mất quyền thì bỏ khỏi feed. 10 test giao diện, 38 test frontend pass; tự review sửa cờ đang tải khi StrictMode chạy effect hai lần, chữ cái đầu tách theo grapheme, nhãn "Khoảnh khắc của bạn", mẫu "tên · thời gian" trong i18n, đồng hồ cập nhật mỗi 10 giây; lint, kiểm tra kiểu, build xuất tĩnh đều qua. 138 test backend pass.
-- Chạy thật: tạo dữ liệu qua API (hai người dùng là bạn, ảnh, video tải lên cắt từ giây 1, ảnh lưu giữ), worker xử lý cả ba thành READY; trạng thái feed trống hiện đúng trên trình duyệt. Chưa xem được feed có dữ liệu trên trình duyệt vì pane trình duyệt đang ẩn.
+- Chạy thật: tạo dữ liệu qua API (hai người dùng là bạn, ảnh, video tải lên cắt từ giây 1, ảnh lưu giữ), worker xử lý cả ba thành READY; trạng thái feed trống hiện đúng trên trình duyệt. Feed có dữ liệu được xem trên trình duyệt sau khi merge (xem mục T-143).
 - Chưa làm: nút chụp ở feed trống (T-133), vẽ đủ lớp trang trí trên video (T-135), thanh reaction (T-143).
 
 ### 16/11/2026 · T-141 quyền xem và chi tiết khoảnh khắc

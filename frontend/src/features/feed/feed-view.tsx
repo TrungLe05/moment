@@ -18,7 +18,7 @@ import { useNow } from "./use-now";
 export function FeedView() {
   const { t } = useI18n();
   const { user } = useSession();
-  const { items, status, error, loadMore, refreshMoment } = useFeed();
+  const { items, status, error, loadMore, refreshMoment, toggleReaction } = useFeed();
   const now = useNow();
   // Khoảnh khắc chia sẻ hết 24 giờ thì rời feed ngay, không chờ tải lại (BR-14).
   const visible = items.filter((moment) => timeLeft(moment.expiresAt, now) !== null);
@@ -47,7 +47,12 @@ export function FeedView() {
           <ol className="flex flex-col gap-6">
             {visible.map((moment) => (
               <li key={moment.id} className="snap-start">
-                <MomentCard moment={moment} now={now} onMediaError={(id) => void refreshMoment(id)} />
+                <MomentCard
+                  moment={moment}
+                  now={now}
+                  onMediaError={(id) => void refreshMoment(id)}
+                  onReact={(emoji) => toggleReaction(moment, emoji)}
+                />
               </li>
             ))}
           </ol>
