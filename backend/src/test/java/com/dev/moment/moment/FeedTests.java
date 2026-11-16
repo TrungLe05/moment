@@ -5,7 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import com.dev.moment.IntegrationTest;
-import com.dev.moment.moment.MomentFixtures.TestUser;
+import com.dev.moment.support.MomentFixtures;
+import com.dev.moment.support.MomentFixtures.TestUser;
 import com.dev.moment.support.ApiTestClient;
 import com.dev.moment.support.MutableClock;
 import com.dev.moment.support.RecordingEmailSender;

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * Không có quyền thì trả 404 như khoảnh khắc không tồn tại, để không lộ nó có hay không (BR-20).
  */
 @Component
-class MomentAccessPolicy {
+public class MomentAccessPolicy {
 
     private final MomentRepository moments;
     private final MomentRecipientRepository recipients;
@@ -48,6 +48,14 @@ class MomentAccessPolicy {
         }
         return recipients.existsById(new MomentRecipient.Key(moment.getId(), viewerId))
                 && friendService.areFriends(moment.getOwnerId(), viewerId);
+    }
+
+    /**
+     * Cho tính năng khác (reaction) kiểm tra quyền xem mà không tự viết lại điều kiện (ARCHITECTURE.md mục 3):
+     * trả id chủ của khoảnh khắc người xem có quyền xem, hoặc lỗi NOT_FOUND.
+     */
+    public UUID ownerOfViewable(UUID viewerId, UUID momentId) {
+        return viewable(viewerId, momentId).getOwnerId();
     }
 
     /** Khoảnh khắc người xem có quyền xem, hoặc lỗi NOT_FOUND. */

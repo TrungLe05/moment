@@ -210,8 +210,8 @@ Presigned URL tải lên ký cả `Content-Type` và dung lượng khai báo: cl
 | GET | `/moments/{id}/reactions` | Ai đã thả gì (chỉ chủ) | US-33 |
 
 - `PUT /moments/{id}/reaction` — body `{ "emoji": "🔥" }` → `200 { "emoji": "🔥" }`. Hành vi "thả lại đúng emoji thì gỡ" (BR-21) do client xử lý bằng cách gọi `DELETE`. Server chuẩn hóa emoji trước khi kiểm tra, ví dụ `❤` (U+2764 không có U+FE0F) thành `❤️` (D-028). Lỗi: `VALIDATION_FAILED` (emoji ngoài bộ cố định), `REACTION_OWN_MOMENT` (422), `NOT_FOUND` (không có quyền xem).
-- `DELETE /moments/{id}/reaction` → `204`, kể cả khi chưa thả.
-- `GET /moments/{id}/reactions` → `200 { "items": [ { "user": <user tóm tắt>, "emoji": "😍", "reactedAt": "..." } ] }`. Không phải chủ → `404`.
+- `DELETE /moments/{id}/reaction` → `204`, kể cả khi chưa thả. Không có quyền xem → `404 NOT_FOUND` (D-036).
+- `GET /moments/{id}/reactions` → `200 { "items": [ { "user": <user tóm tắt>, "emoji": "😍", "reactedAt": "..." } ] }`, mới nhất trước; `reactedAt` là lần thả hoặc đổi emoji gần nhất (D-036). Không phải chủ → `404`.
 
 ## 4. Đối tượng khoảnh khắc trả về
 
