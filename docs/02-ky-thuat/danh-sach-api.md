@@ -1,6 +1,6 @@
 # Danh sách API (MVP)
 
-Phiên bản: bản chốt 1 · Cập nhật: 16/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md)
+Phiên bản: bản chốt 1 · Cập nhật: 17/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md)
 
 MVP có 32 endpoint REST dưới tiền tố `/api/v1`, chia 5 nhóm. Không có WebSocket trong MVP (chat và realtime ở giai đoạn 2). File ảnh/video không đi qua API: API cấp presigned URL, client tải thẳng lên object storage.
 
@@ -201,7 +201,7 @@ Presigned URL tải lên ký cả `Content-Type` và dung lượng khai báo: cl
 
 **Feed** — `GET /feed?cursor=&limit=` (`limit` mặc định 10, tối đa 30) → `200 { "items": [<moment>], "nextCursor": "..." }`. Gồm khoảnh khắc `READY` còn trước `expiresAt` của tôi và của bạn gửi cho tôi (BR-19), mới nhất trước. `limit` ngoài 1–30 hoặc `cursor` không do server cấp → `400 VALIDATION_FAILED` (D-035).
 
-**Kho** — `GET /archive?scope=mine|received&cursor=&limit=` (`limit` mặc định 30, tối đa 60) → như feed. Client tự nhóm theo tháng dựa trên `createdAt`.
+**Kho** — `GET /archive?scope=mine|received&cursor=&limit=` (`limit` mặc định 30, tối đa 60) → như feed. `mine`: khoảnh khắc lưu giữ đã `READY` của tôi (US-40); `received`: khoảnh khắc lưu giữ đã `READY` gửi cho tôi từ người đang là bạn (US-41, BR-19). Không giới hạn 24 giờ (BR-15), mới nhất trước. `scope` bắt buộc, chỉ nhận `mine` hoặc `received` (chữ thường); `scope`, `limit` sai hoặc `cursor` không do server cấp → `400 VALIDATION_FAILED` (D-038). Client tự nhóm theo tháng dựa trên `createdAt`.
 
 ### 3.5 Reaction
 

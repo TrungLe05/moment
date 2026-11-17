@@ -76,4 +76,23 @@ public class MomentAccessPolicy {
                 ? moments.feedFirstPage(viewerId, owners, clock.instant(), limit)
                 : moments.feedPageAfter(viewerId, owners, clock.instant(), after.createdAt(), after.id(), limit);
     }
+
+    /**
+     * Một trang kho (US-40, US-41) theo cùng quy tắc với {@link #canView}, lọc trong câu truy vấn: khoảnh khắc lưu giữ
+     * đã READY; tab "Được gửi" chỉ gồm khoảnh khắc tôi là người nhận, chủ đang là bạn (BR-19, BR-07).
+     */
+    List<Moment> archivePage(UUID viewerId, ArchiveScope scope, FeedCursor after, int limit) {
+        if (scope == ArchiveScope.MINE) {
+            return after == null
+                    ? moments.mineArchiveFirstPage(viewerId, limit)
+                    : moments.mineArchivePageAfter(viewerId, after.createdAt(), after.id(), limit);
+        }
+        Set<UUID> friends = friendService.friendIds(viewerId);
+        if (friends.isEmpty()) {
+            return List.of();
+        }
+        return after == null
+                ? moments.receivedArchiveFirstPage(viewerId, friends, limit)
+                : moments.receivedArchivePageAfter(viewerId, friends, after.createdAt(), after.id(), limit);
+    }
 }

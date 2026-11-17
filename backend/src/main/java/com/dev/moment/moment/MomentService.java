@@ -28,8 +28,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Tạo khoảnh khắc, báo tải xong, xử lý lại (T-131), xem chi tiết (T-141), feed (T-142), lưu giữ và xóa (T-144);
- * API mục 3.4.
+ * Tạo khoảnh khắc, báo tải xong, xử lý lại (T-131), xem chi tiết (T-141), feed (T-142), lưu giữ và xóa (T-144),
+ * kho (T-151); API mục 3.4.
  * Gọi object storage luôn nằm ngoài transaction database (CLAUDE.md).
  */
 @Service
@@ -192,9 +192,21 @@ class MomentService {
 
     /** US-30: feed 24 giờ, mới nhất trước, phân trang bằng con trỏ (API mục 1 và 3.4). */
     MomentResponse.Page feed(UUID viewerId, String cursor, int limit) {
-        FeedCursor after = cursor == null || cursor.isBlank() ? null : FeedCursor.decode(cursor);
         // Lấy dư một dòng để biết còn trang sau mà không cần đếm.
-        List<Moment> found = accessPolicy.feedPage(viewerId, after, limit + 1);
+        return page(viewerId, accessPolicy.feedPage(viewerId, decodeCursor(cursor), limit + 1), limit);
+    }
+
+    /** US-40, US-41: kho lưu giữ hai tab, mới nhất trước, phân trang bằng con trỏ như feed (API mục 3.4). */
+    MomentResponse.Page archive(UUID viewerId, ArchiveScope scope, String cursor, int limit) {
+        return page(viewerId, accessPolicy.archivePage(viewerId, scope, decodeCursor(cursor), limit + 1), limit);
+    }
+
+    private static FeedCursor decodeCursor(String cursor) {
+        return cursor == null || cursor.isBlank() ? null : FeedCursor.decode(cursor);
+    }
+
+    // found có tới limit + 1 dòng; dòng dư chỉ để biết còn trang sau.
+    private MomentResponse.Page page(UUID viewerId, List<Moment> found, int limit) {
         boolean hasMore = found.size() > limit;
         List<Moment> items = hasMore ? found.subList(0, limit) : found;
         String nextCursor = hasMore ? FeedCursor.after(items.getLast()).encode() : null;

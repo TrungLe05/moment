@@ -1,6 +1,6 @@
 # Quyết định và câu hỏi mở
 
-Cập nhật: 16/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Tiến độ](tien-do.md), [ADR](../04-quyet-dinh/README.md)
+Cập nhật: 17/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Tiến độ](tien-do.md), [ADR](../04-quyet-dinh/README.md)
 
 File này có hai phần: câu hỏi đang chờ chốt (`Q-xxx`) và sổ quyết định nhỏ (`D-xxx`). Mã không đánh lại số.
 
@@ -73,4 +73,5 @@ Các quyết định sản phẩm đã chốt trước ngày 16/11/2026 (nền t
 | D-035 | Feed: `limit` ngoài 1–30 hoặc không phải số, và `cursor` không do server cấp đều trả `400 VALIDATION_FAILED` (trường `limit` mã `INVALID`, trường `cursor` mã `INVALID_FORMAT`), không tự cắt về giới hạn. Con trỏ là base64url của `createdAt~id`. Danh sách bạn trong truy vấn feed lấy qua `FriendService` (tối đa 15) thay vì nối thẳng bảng `friendships`, cùng kết quả với truy vấn ở DB mục 7 | 16/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md) |
 | D-036 | Reaction: `DELETE /moments/{id}/reaction` khi không có quyền xem trả `404 NOT_FOUND` như các API khác (BR-20, BR-24); `GET /moments/{id}/reactions` xếp mới nhất trước, `reactedAt` là lần thả hoặc đổi emoji gần nhất (`updated_at`). Emoji kiểm tra trước quyền xem, nên emoji sai trả `400` kể cả khi không có quyền | 16/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md) |
 | D-037 | `DELETE /moments/{id}` trả `204`; không phải chủ hoặc đã xóa → `404 NOT_FOUND`. Xóa khóa dòng `moments` trước khi đọc danh sách file, để worker đang chốt `READY` không ghi thêm file sau lúc đọc; file trên storage xóa qua việc `DELETE_OBJECTS` tạo cùng transaction. `POST /keep` đua với request lưu giữ khác vẫn trả `200` | 17/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md) |
+| D-038 | Kho: `scope` của `GET /archive` bắt buộc, chỉ nhận `mine` hoặc `received` (chữ thường), sai hay thiếu → `400 VALIDATION_FAILED`; `limit`, `cursor` báo lỗi như feed (D-035). Cả hai tab chỉ gồm khoảnh khắc `READY` (lưu giữ đang xử lý hay lỗi không vào kho). Tab "Được gửi" lọc chủ theo danh sách bạn từ `FriendService` như feed. Giao diện: tab nằm trên địa chỉ (`/archive?tab=received`), chi tiết ở `/archive/moment?id=` vì xuất tĩnh không có route động; nhóm tháng theo múi giờ máy người xem | 17/11/2026 | [Danh sách API](../02-ky-thuat/danh-sach-api.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md) |
 | D-030 | (Q-019) Bỏ `note` khỏi database và API ở MVP; ghi chú dài trong kế hoạch và định hướng giao diện chuyển thành "để sau MVP" | 16/11/2026 | [Thiết kế database](../02-ky-thuat/thiet-ke-database.md), [Danh sách API](../02-ky-thuat/danh-sach-api.md), [Kế hoạch tổng quan](../00-tong-quan/ke-hoach-tong-quan.md), [Định hướng giao diện](../03-giao-dien/dinh-huong-giao-dien.md) |

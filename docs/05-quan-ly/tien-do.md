@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144).
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151). PR #14 (T-144) và PR của T-151 chờ chủ dự án merge.
 
-**Việc kế tiếp:** kho (T-151), job định kỳ hết hạn và dọn dẹp (T-161), giao diện chụp và soạn (T-133 → T-137), ảnh đại diện (T-116).
+**Việc kế tiếp:** job định kỳ hết hạn và dọn dẹp (T-161), giao diện chụp và soạn (T-133 → T-137), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 25 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết, feed, reaction, lưu giữ và xóa xong (T-131, T-132, T-141 → T-144); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 26 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết, feed, reaction, lưu giữ và xóa, kho xong (T-131, T-132, T-141 → T-144, T-151); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,16 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 17/11/2026 · T-151 kho lưu giữ
+
+- Tự review PR #14 (T-144), CI xanh, không thấy lỗi; lệnh merge bị chặn bởi quyền của công cụ nên PR #14 để chủ dự án merge. Nhánh T-151 tách từ nhánh T-144 (cần lưu giữ), PR nhắm `develop`, nên merge #14 trước.
+- Dùng đồ thị graphify để lần đường feed (`FeedController` → `MomentService.feed` → `MomentAccessPolicy.feedPage` → `MomentRepository`) rồi làm kho theo cùng khuôn. Đồ thị sau khi cập nhật: 2.224 nút, 6.505 cạnh, 119 cụm, không có vòng import.
+- Backend, test trước (9 test): `GET /archive?scope=mine|received`, limit mặc định 30 tối đa 60, con trỏ như feed; "Của tôi" là khoảnh khắc lưu giữ `READY` của tôi kể cả quá 24 giờ (BR-15); "Được gửi" chỉ gồm khoảnh khắc gửi cho tôi từ người đang là bạn (BR-19, BR-07), kết bạn sau không thấy khoảnh khắc cũ (BR-12). Lọc trong `MomentAccessPolicy.archivePage`. Chốt các chi tiết đặc tả chưa nói (D-038). 168 test backend pass. Lần chạy test đầu không lên vì Docker Desktop chưa bật; đã bật rồi chạy lại.
+- Frontend: trang `/archive` hai tab (tablist, mũi tên trái/phải đổi tab, tab nằm trên địa chỉ), lưới ảnh thu nhỏ nhóm theo tháng, tải thêm khi cuộn, nhãn "tải lên" và "video"; trang chi tiết `/archive/moment?id=` hiện ảnh hoặc video có nút điều khiển, caption, ngày đăng; feed có link "Kho". Tách `LoadMoreSentinel` ra `components/` dùng chung cho feed và kho. 8 test mới, 59 test frontend pass; lint, kiểm tra kiểu, build xuất tĩnh đều qua.
+- Chạy thật trên trình duyệt (API 8081 và worker chạy từ bản sao jar, dữ liệu tạo qua API): tab "Của tôi" có hai ảnh lưu giữ nhóm tháng 11 và tháng 10, ảnh chia sẻ không vào kho; tab "Được gửi" có ảnh của bạn; chi tiết hiện "Đăng ngày 17 tháng 11, 2026" và nhãn "lưu giữ", "Về kho" quay lại đúng tab; khung 375 px không tràn ngang.
+- `.env` dev thiếu `JWT_SIGNING_KEY`, `GOOGLE_CLIENT_ID`: khi chạy thử đã truyền giá trị tạm qua biến môi trường, không sửa `.env`.
+- Chưa làm: vẽ lớp trang trí trên video trong chi tiết (T-135, tạm hiện caption); reaction và nút xóa trong chi tiết kho (đặc tả US-42 không yêu cầu).
 
 ### 17/11/2026 · T-144 lưu giữ và xóa
 

@@ -81,4 +81,38 @@ interface MomentRepository extends JpaRepository<Moment, UUID> {
     List<Moment> feedPageAfter(@Param("me") UUID me, @Param("friendIds") Collection<UUID> friendIds,
             @Param("now") Instant now, @Param("cursorCreatedAt") Instant cursorCreatedAt,
             @Param("cursorId") UUID cursorId, @Param("limit") int limit);
+
+    // Kho "Của tôi" (US-40, BR-15): khoảnh khắc lưu giữ đã xử lý xong của tôi, không giới hạn 24 giờ.
+    // Dùng chỉ mục một phần moments_owner_kept_idx (DB mục 3).
+    String MINE_ARCHIVE_CONDITIONS = "m.owner_id = :me AND m.mode = 'KEPT' AND m.status = 'READY'";
+
+    @Query(value = "SELECT m.* FROM moments m WHERE " + MINE_ARCHIVE_CONDITIONS
+            + " ORDER BY m.created_at DESC, m.id DESC LIMIT :limit", nativeQuery = true)
+    List<Moment> mineArchiveFirstPage(@Param("me") UUID me, @Param("limit") int limit);
+
+    @Query(value = "SELECT m.* FROM moments m WHERE " + MINE_ARCHIVE_CONDITIONS
+            + " AND (m.created_at, m.id) < (:cursorCreatedAt, :cursorId)"
+            + " ORDER BY m.created_at DESC, m.id DESC LIMIT :limit", nativeQuery = true)
+    List<Moment> mineArchivePageAfter(@Param("me") UUID me, @Param("cursorCreatedAt") Instant cursorCreatedAt,
+            @Param("cursorId") UUID cursorId, @Param("limit") int limit);
+
+    // Kho "Được gửi" (US-41, BR-19, DB mục 7): khoảnh khắc lưu giữ gửi cho tôi từ người đang là bạn.
+    // Như feed, danh sách bạn lấy qua FriendService thay cho EXISTS trên friendships (D-035); :friendIds không rỗng.
+    // Sắp xếp theo r.created_at (chép từ moments lúc đăng) để dùng chỉ mục moment_recipients_feed_idx.
+    String RECEIVED_ARCHIVE_FROM = """
+            moment_recipients r JOIN moments m ON m.id = r.moment_id
+            WHERE r.recipient_id = :me AND m.mode = 'KEPT' AND m.status = 'READY' AND m.owner_id IN (:friendIds)
+            """;
+
+    @Query(value = "SELECT m.* FROM " + RECEIVED_ARCHIVE_FROM
+            + " ORDER BY r.created_at DESC, r.moment_id DESC LIMIT :limit", nativeQuery = true)
+    List<Moment> receivedArchiveFirstPage(@Param("me") UUID me, @Param("friendIds") Collection<UUID> friendIds,
+            @Param("limit") int limit);
+
+    @Query(value = "SELECT m.* FROM " + RECEIVED_ARCHIVE_FROM
+            + " AND (r.created_at, r.moment_id) < (:cursorCreatedAt, :cursorId)"
+            + " ORDER BY r.created_at DESC, r.moment_id DESC LIMIT :limit", nativeQuery = true)
+    List<Moment> receivedArchivePageAfter(@Param("me") UUID me, @Param("friendIds") Collection<UUID> friendIds,
+            @Param("cursorCreatedAt") Instant cursorCreatedAt, @Param("cursorId") UUID cursorId,
+            @Param("limit") int limit);
 }

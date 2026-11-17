@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { LoadMoreSentinel } from "@/components/load-more-sentinel";
 import { useSession } from "@/features/auth/session";
 import { errorText } from "@/i18n/error-text";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -30,6 +30,9 @@ export function FeedView() {
         <nav className="flex items-center gap-2 text-sm font-semibold">
           <Link href="/friends" className="flex h-11 items-center rounded-full bg-night-surface px-4 focus-visible:outline-2 focus-visible:outline-peach">
             {format(t.feed.friendCount, { count: String(user?.friendCount ?? 0), limit: String(user?.friendLimit ?? 15) })}
+          </Link>
+          <Link href="/archive" className="flex h-11 items-center rounded-full bg-night-surface px-4 focus-visible:outline-2 focus-visible:outline-peach">
+            {t.archive.nav}
           </Link>
           <Link href="/settings" className="flex h-11 items-center rounded-full bg-night-surface px-4 focus-visible:outline-2 focus-visible:outline-peach">
             {t.feed.settings}
@@ -101,29 +104,4 @@ function EmptyFeed() {
       </Link>
     </section>
   );
-}
-
-/** Mốc ở cuối danh sách: hiện ra trên màn hình thì tải trang sau (US-30 "tải thêm khi cuộn"). */
-function LoadMoreSentinel({ onVisible }: { onVisible: () => void }) {
-  const marker = useRef<HTMLDivElement>(null);
-  const callback = useRef(onVisible);
-
-  useEffect(() => {
-    callback.current = onVisible;
-  }, [onVisible]);
-
-  useEffect(() => {
-    const element = marker.current;
-    if (!element || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) callback.current();
-      },
-      { rootMargin: "600px 0px" },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  return <div ref={marker} aria-hidden="true" className="h-px" />;
 }

@@ -1,6 +1,6 @@
 # Kiến trúc · Khoảnh khắc (moment)
 
-Cập nhật: 16/11/2026 · Phạm vi: giai đoạn 1 (MVP) và hướng mở rộng · Liên quan: [Kế hoạch tổng quan](docs/00-tong-quan/ke-hoach-tong-quan.md), [Đặc tả MVP](docs/01-san-pham/dac-ta-mvp.md), [Thiết kế database](docs/02-ky-thuat/thiet-ke-database.md), [Danh sách API](docs/02-ky-thuat/danh-sach-api.md), [ADR](docs/04-quyet-dinh/README.md)
+Cập nhật: 17/11/2026 · Phạm vi: giai đoạn 1 (MVP) và hướng mở rộng · Liên quan: [Kế hoạch tổng quan](docs/00-tong-quan/ke-hoach-tong-quan.md), [Đặc tả MVP](docs/01-san-pham/dac-ta-mvp.md), [Thiết kế database](docs/02-ky-thuat/thiet-ke-database.md), [Danh sách API](docs/02-ky-thuat/danh-sach-api.md), [ADR](docs/04-quyet-dinh/README.md)
 
 File này mô tả hệ thống được chia thành những phần nào, mỗi phần làm gì và các phần nói chuyện với nhau ra sao. Hành vi chi tiết (quy tắc nghiệp vụ, bảng, endpoint) nằm ở các tài liệu liên quan; lý do của các lựa chọn lớn nằm ở ADR. Khi file này lệch với đặc tả hoặc code, ghi câu hỏi vào [quyết định và câu hỏi mở](docs/05-quan-ly/quyet-dinh.md) rồi sửa có chủ đích.
 
@@ -96,7 +96,7 @@ Trong một tính năng, luồng đi một chiều: Controller (mỏng, chỉ nh
 | Thư mục | Chứa |
 | --- | --- |
 | `src/app/` | Route của Next.js, chỉ trang tĩnh; mỗi trang bọc `PageGate` để chờ khôi phục phiên và điều hướng theo trạng thái. Route động như `/moment/[id]` xử lý phía client, chốt khi làm T-141 |
-| `src/features/<tính năng>/` | Component và hook của từng tính năng: đã có `auth` (phiên đăng nhập, form), `onboarding`, `settings`, `home`, `friends`, `invite`; sau thêm `composer`, `feed`, `archive` |
+| `src/features/<tính năng>/` | Component và hook của từng tính năng: đã có `auth` (phiên đăng nhập, form), `onboarding`, `settings`, `home`, `friends`, `invite`, `feed`, `archive`; sau thêm `composer` |
 | `src/platform/` | Interface phụ thuộc nền tảng và bản cài đặt cho web (mục 7) |
 | `src/lib/api/` | Client HTTP chung: gắn access token, tự refresh một lần khi 401 (gộp các request cùng lúc), đọc lỗi Problem Details theo `code`; hàm gọi từng endpoint |
 | `src/i18n/` | Chuỗi giao diện `vi` và `en` |
