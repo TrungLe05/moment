@@ -43,6 +43,10 @@ export type Moment = {
 
 export type MomentPage = { items: Moment[]; nextCursor: string | null };
 
+export const ARCHIVE_SCOPES = ["mine", "received"] as const;
+
+export type ArchiveScope = (typeof ARCHIVE_SCOPES)[number];
+
 /** Bộ emoji cố định (BR-21), đúng dạng chuẩn server lưu (D-028). */
 export const REACTION_EMOJIS = ["❤️", "😍", "🔥", "😂", "😮", "😢"] as const;
 
@@ -54,6 +58,13 @@ export const momentsApi = {
   // Con trỏ là chuỗi mờ do server cấp, client chỉ gửi lại (API mục 1).
   feed: (cursor: string | null) =>
     apiClient.request<MomentPage>(cursor ? `/feed?cursor=${encodeURIComponent(cursor)}` : "/feed", { auth: true }),
+
+  // Kho (API mục 3.4): "mine" là tab "Của tôi", "received" là tab "Được gửi" (US-40, US-41).
+  archive: (scope: ArchiveScope, cursor: string | null) =>
+    apiClient.request<MomentPage>(
+      `/archive?scope=${scope}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`,
+      { auth: true },
+    ),
 
   detail: (id: string) => apiClient.request<Moment>(`/moments/${encodeURIComponent(id)}`, { auth: true }),
 
