@@ -195,7 +195,9 @@ Presigned URL tải lên ký cả `Content-Type` và dung lượng khai báo: cl
 
 **Chi tiết** — `GET /moments/{id}` → `200` moment (mục 4). Chủ xem được ở mọi trạng thái. Người khác chỉ xem được theo BR-19: nằm trong danh sách người nhận, đang là bạn của chủ, khoảnh khắc đã `READY` (BR-13) và còn trước `expiresAt` hoặc ở chế độ lưu giữ. Không có quyền hoặc không tồn tại → `404 NOT_FOUND`, kiểm tra qua `MomentAccessPolicy`.
 
-**Chuyển sang lưu giữ** — `POST /moments/{id}/keep` → `200` moment. Đã là lưu giữ → `200` (không đổi gì). Quá 24 giờ hoặc đã hết hạn → `409 MOMENT_NOT_KEEPABLE`. Không phải chủ → `404`.
+**Chuyển sang lưu giữ** — `POST /moments/{id}/keep` → `200` moment. Đã là lưu giữ → `200` (không đổi gì). Quá 24 giờ, đã hết hạn, hoặc khoảnh khắc chưa ở `PROCESSING`/`READY` → `409 MOMENT_NOT_KEEPABLE`. Không phải chủ → `404`.
+
+**Xóa khoảnh khắc** — `DELETE /moments/{id}` → `204`, ở mọi trạng thái (BR-18). Người nhận, reaction xóa theo; file trên storage xóa bất đồng bộ. Không phải chủ hoặc đã xóa → `404 NOT_FOUND` (D-037).
 
 **Feed** — `GET /feed?cursor=&limit=` (`limit` mặc định 10, tối đa 30) → `200 { "items": [<moment>], "nextCursor": "..." }`. Gồm khoảnh khắc `READY` còn trước `expiresAt` của tôi và của bạn gửi cho tôi (BR-19), mới nhất trước. `limit` ngoài 1–30 hoặc `cursor` không do server cấp → `400 VALIDATION_FAILED` (D-035).
 

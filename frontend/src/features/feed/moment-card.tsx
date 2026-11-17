@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/i18n/I18nProvider";
 import { format, type Messages } from "@/i18n/messages";
 import type { Moment, ReactionEmoji } from "@/lib/api/moments";
+import { OwnerActions } from "./owner-actions";
 import { OwnerReactions } from "./owner-reactions";
 import { ReactionBar } from "./reaction-bar";
 import { postedAgo, timeLeft, type Span } from "./time";
@@ -15,6 +16,9 @@ type Props = {
   onMediaError: (id: string) => void;
   /** Thả hoặc gỡ reaction; ném lỗi khi không lưu được. */
   onReact: (emoji: ReactionEmoji) => Promise<void>;
+  /** Chỉ chủ: lưu giữ và xóa; ném lỗi khi không làm được. */
+  onKeep: () => Promise<void>;
+  onDelete: () => Promise<void>;
 };
 
 // Chữ cái đầu cho ảnh đại diện tạm: tách theo ký tự hiển thị (CLAUDE.md), không cắt đôi emoji hay dấu tiếng Việt.
@@ -35,7 +39,7 @@ function spanText(t: Messages, span: Span, kind: "posted" | "left"): string {
 const pill = "flex items-center gap-1.5 rounded-full bg-night/60 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md";
 
 /** Một khoảnh khắc trong feed (US-30, US-31): ảnh hoặc video, người đăng, thời gian còn lại hoặc nhãn lưu giữ. */
-export function MomentCard({ moment, now, onMediaError, onReact }: Props) {
+export function MomentCard({ moment, now, onMediaError, onReact, onKeep, onDelete }: Props) {
   const { t } = useI18n();
   const ownerName = moment.isMine
     ? t.feed.you
@@ -92,7 +96,10 @@ export function MomentCard({ moment, now, onMediaError, onReact }: Props) {
       </div>
       {/* BR-23: chủ không tự thả reaction, thay vào đó xem ai đã thả gì (US-33). */}
       {moment.isMine ? (
-        <OwnerReactions momentId={moment.id} count={moment.ownerView?.reactionCount ?? 0} />
+        <div className="flex items-start justify-between gap-3">
+          <OwnerReactions momentId={moment.id} count={moment.ownerView?.reactionCount ?? 0} />
+          <OwnerActions moment={moment} onKeep={onKeep} onDelete={onDelete} />
+        </div>
       ) : (
         <ReactionBar selected={moment.myReaction} onChoose={onReact} />
       )}

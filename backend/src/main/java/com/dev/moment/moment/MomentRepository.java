@@ -3,8 +3,11 @@ package com.dev.moment.moment;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,6 +39,27 @@ interface MomentRepository extends JpaRepository<Moment, UUID> {
             where m.id = :id and m.status = com.dev.moment.moment.Moment.Status.PROCESSING
             """)
     int markFailed(@Param("id") UUID id, @Param("reason") String reason);
+
+    // BR-16, DB mục 7: một câu lệnh có điều kiện nên không đụng độ với job hết hạn; 0 dòng thì không lưu giữ được.
+    @Modifying
+    @Query("""
+            update Moment m set m.mode = com.dev.moment.moment.Moment.Mode.KEPT, m.keptAt = :now
+            where m.id = :id and m.ownerId = :ownerId and m.mode = com.dev.moment.moment.Moment.Mode.SHARED
+              and m.status in (com.dev.moment.moment.Moment.Status.PROCESSING, com.dev.moment.moment.Moment.Status.READY)
+              and m.expiresAt > :now
+            """)
+    int keep(@Param("id") UUID id, @Param("ownerId") UUID ownerId, @Param("now") Instant now);
+
+    // Khóa dòng khoảnh khắc trước khi xóa: worker đang chốt READY (markReady) phải chờ, nên không có file nào
+    // được ghi thêm sau lúc đọc danh sách file cần xóa.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select m from Moment m where m.id = :id and m.ownerId = :ownerId")
+    Optional<Moment> lockOwned(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
+
+    // BR-18: xóa hẳn ở mọi trạng thái; người nhận, file và reaction xóa theo khóa ngoại ON DELETE CASCADE.
+    @Modifying
+    @Query("delete from Moment m where m.id = :id and m.ownerId = :ownerId")
+    int deleteOwned(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
 
     // Feed (DB mục 7, BR-13, BR-19): khoảnh khắc READY còn trước expires_at, của tôi hoặc gửi cho tôi từ người đang là bạn.
     // Danh sách bạn (tối đa 15, BR-06) lấy qua FriendService để gói moment không đọc thẳng bảng friendships.

@@ -57,6 +57,13 @@ export const momentsApi = {
 
   detail: (id: string) => apiClient.request<Moment>(`/moments/${encodeURIComponent(id)}`, { auth: true }),
 
+  // Chỉ chủ (API mục 3.4): lưu giữ trả khoảnh khắc đã đổi; xóa trả 204.
+  keep: (id: string) =>
+    apiClient.request<Moment>(`/moments/${encodeURIComponent(id)}/keep`, { method: "POST", auth: true }),
+
+  remove: (id: string) =>
+    apiClient.request<void>(`/moments/${encodeURIComponent(id)}`, { method: "DELETE", auth: true }),
+
   // Reaction (API mục 3.5): đặt hoặc đổi; "thả lại đúng emoji thì gỡ" do client gọi unreact (BR-21).
   react: (id: string, emoji: ReactionEmoji) =>
     apiClient.request<{ emoji: string }>(`/moments/${encodeURIComponent(id)}/reaction`, {

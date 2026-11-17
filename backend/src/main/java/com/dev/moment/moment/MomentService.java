@@ -28,7 +28,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Tạo khoảnh khắc, báo tải xong, xử lý lại (T-131), xem chi tiết (T-141), feed (T-142); API mục 3.4.
+ * Tạo khoảnh khắc, báo tải xong, xử lý lại (T-131), xem chi tiết (T-141), feed (T-142), lưu giữ và xóa (T-144);
+ * API mục 3.4.
  * Gọi object storage luôn nằm ngoài transaction database (CLAUDE.md).
  */
 @Service
@@ -157,6 +158,36 @@ class MomentService {
     /** US-42: chi tiết một khoảnh khắc; chỉ trả khi người xem có quyền (BR-19, BR-20). */
     MomentResponse detail(UUID viewerId, UUID momentId) {
         return responseFor(viewerId, accessPolicy.viewable(viewerId, momentId));
+    }
+
+    /** US-34, BR-16: chuyển sang lưu giữ khi còn trong 24 giờ; đã lưu giữ thì trả nguyên trạng (API mục 3.4). */
+    MomentResponse keep(UUID ownerId, UUID momentId) {
+        Moment moment = ownedMoment(ownerId, momentId);
+        if (moment.getMode() != Moment.Mode.KEPT) {
+            Integer kept = transactionTemplate.execute(status -> moments.keep(momentId, ownerId, clock.instant()));
+            if (kept == null || kept == 0) {
+                // Hai request lưu giữ cùng lúc: request thua vẫn trả 200 nếu khoảnh khắc đã thành lưu giữ.
+                entityManager.clear();
+                if (ownedMoment(ownerId, momentId).getMode() != Moment.Mode.KEPT) {
+                    throw new ApiException(ErrorCode.MOMENT_NOT_KEEPABLE);
+                }
+            }
+        }
+        return currentResponse(ownerId, momentId);
+    }
+
+    /**
+     * US-35, BR-18: xóa hẳn với mọi người, reaction và người nhận xóa theo. File trên storage xóa bất đồng bộ qua việc
+     * DELETE_OBJECTS tạo cùng transaction, không gọi storage trong transaction (CLAUDE.md, DB mục 2).
+     */
+    void delete(UUID ownerId, UUID momentId) {
+        ownedMoment(ownerId, momentId);
+        transactionTemplate.executeWithoutResult(status -> {
+            moments.lockOwned(momentId, ownerId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+            List<String> keys = media.findAllByMomentId(momentId).stream().map(MomentMedia::getObjectKey).toList();
+            moments.deleteOwned(momentId, ownerId);
+            mediaJobService.enqueueDeleteObjects(momentId, keys);
+        });
     }
 
     /** US-30: feed 24 giờ, mới nhất trước, phân trang bằng con trỏ (API mục 1 và 3.4). */

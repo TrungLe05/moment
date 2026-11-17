@@ -117,5 +117,17 @@ export function useFeed() {
     [setMyReaction],
   );
 
-  return { items, status, error, loadMore, refreshMoment, toggleReaction };
+  /** US-34: lưu giữ; thay khoảnh khắc bằng bản server trả về để nhãn đổi ngay. Lỗi ném cho nút báo. */
+  const keepMoment = useCallback(async (id: string) => {
+    const kept = await momentsApi.keep(id);
+    setItems((current) => current.map((moment) => (moment.id === id ? kept : moment)));
+  }, []);
+
+  /** US-35: xóa xong thì bỏ khỏi feed. */
+  const deleteMoment = useCallback(async (id: string) => {
+    await momentsApi.remove(id);
+    setItems((current) => current.filter((moment) => moment.id !== id));
+  }, []);
+
+  return { items, status, error, loadMore, refreshMoment, toggleReaction, keepMoment, deleteMoment };
 }
