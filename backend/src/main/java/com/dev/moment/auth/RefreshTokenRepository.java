@@ -30,4 +30,14 @@ interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
     @Modifying
     @Query("update RefreshToken t set t.revokedAt = :now where t.userId = :userId and t.revokedAt is null")
     int revokeAllForUser(@Param("userId") UUID userId, @Param("now") Instant now);
+
+    // Job định kỳ (DB mục 9, D-039): xóa theo cả family, chỉ khi mọi token trong family hết hạn trước :expiredBefore.
+    // Xóa lẻ token cũ của family còn sống sẽ dời mốc auth_time (findFamilyStart) và làm mất dấu token đã dùng.
+    @Modifying
+    @Query(value = """
+            DELETE FROM refresh_tokens WHERE family_id IN (
+                SELECT family_id FROM refresh_tokens GROUP BY family_id HAVING max(expires_at) < :expiredBefore
+            )
+            """, nativeQuery = true)
+    int deleteFamiliesExpiredBefore(@Param("expiredBefore") Instant expiredBefore);
 }

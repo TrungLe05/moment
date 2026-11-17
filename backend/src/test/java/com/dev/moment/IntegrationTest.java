@@ -20,7 +20,9 @@ import org.springframework.context.annotation.Import;
 @SpringBootTest(properties = {
         "moment.auth.jwt-signing-key=${random.value}${random.value}",
         "moment.auth.google-client-id=test-client-id",
-        "moment.auth.frontend-base-url=http://localhost:3000"
+        "moment.auth.frontend-base-url=http://localhost:3000",
+        // Job định kỳ chạy ngầm sẽ đổi dữ liệu test đang dựng; test gọi thẳng từng job (T-161).
+        "moment.housekeeping.enabled=false"
 })
 @AutoConfigureMockMvc
 @Import({TestcontainersConfiguration.class, TestSupportConfiguration.class})

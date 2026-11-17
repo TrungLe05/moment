@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 interface MomentRepository extends JpaRepository<Moment, UUID> {
 
@@ -60,6 +62,40 @@ interface MomentRepository extends JpaRepository<Moment, UUID> {
     @Modifying
     @Query("delete from Moment m where m.id = :id and m.ownerId = :ownerId")
     int deleteOwned(@Param("id") UUID id, @Param("ownerId") UUID ownerId);
+
+    // Job định kỳ (DB mục 9): khóa một lô dòng bằng SKIP LOCKED để không chờ request đang giữ dòng (lưu giữ, xóa,
+    // thử lại) và hai lượt job chồng nhau không lấy trùng. Khóa giữ tới hết transaction của bên gọi.
+
+    // BR-14, DB mục 4: khoảnh khắc chia sẻ quá expires_at ở PROCESSING, READY hay FAILED sang EXPIRED.
+    // Lệnh lưu giữ chạy cùng lúc phải chờ khóa, rồi thấy đã quá expires_at nên không lưu giữ được (BR-16).
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Query(value = """
+            SELECT id FROM moments
+            WHERE mode = 'SHARED' AND status IN ('PROCESSING', 'READY', 'FAILED') AND expires_at <= :now
+            ORDER BY expires_at LIMIT :limit FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    List<UUID> lockExpiredShared(@Param("now") Instant now, @Param("limit") int limit);
+
+    @Modifying
+    @Query("""
+            update Moment m set m.status = com.dev.moment.moment.Moment.Status.EXPIRED
+            where m.id in :ids and m.mode = com.dev.moment.moment.Moment.Mode.SHARED
+            """)
+    int markExpired(@Param("ids") Collection<UUID> ids);
+
+    // DB mục 4: bản nháp chưa báo tải xong; D-029: khoảnh khắc FAILED ở mọi chế độ. Cả hai tính từ created_at.
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Query(value = """
+            SELECT id FROM moments WHERE status = :status AND created_at <= :createdBefore
+            ORDER BY created_at LIMIT :limit FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    List<UUID> lockStale(@Param("status") String status, @Param("createdBefore") Instant createdBefore,
+            @Param("limit") int limit);
+
+    // Người nhận, file và reaction xóa theo khóa ngoại ON DELETE CASCADE.
+    @Modifying
+    @Query("delete from Moment m where m.id in :ids")
+    int deleteAllByIdIn(@Param("ids") Collection<UUID> ids);
 
     // Feed (DB mục 7, BR-13, BR-19): khoảnh khắc READY còn trước expires_at, của tôi hoặc gửi cho tôi từ người đang là bạn.
     // Danh sách bạn (tối đa 15, BR-06) lấy qua FriendService để gói moment không đọc thẳng bảng friendships.

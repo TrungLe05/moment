@@ -1,6 +1,7 @@
 package com.dev.moment.job;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,9 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @Service
 public class MediaJobService {
+
+    /** DB mục 9: giữ việc DONE 7 ngày rồi xóa. */
+    static final Duration DONE_RETENTION = Duration.ofDays(7);
 
     private final MediaJobRepository repository;
     private final JsonMapper jsonMapper;
@@ -40,5 +44,11 @@ public class MediaJobService {
         }
         String payload = jsonMapper.writeValueAsString(Map.of("keys", List.copyOf(objectKeys)));
         repository.save(new MediaJob(MediaJobType.DELETE_OBJECTS, momentId, payload, clock.instant()));
+    }
+
+    /** Job định kỳ (DB mục 9): xóa việc DONE xong quá 7 ngày; trả số việc đã xóa. */
+    @Transactional
+    public int deleteFinishedJobs() {
+        return repository.deleteDoneBefore(clock.instant().minus(DONE_RETENTION));
     }
 }

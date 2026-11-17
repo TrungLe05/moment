@@ -1,6 +1,7 @@
 package com.dev.moment.job;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -52,4 +53,29 @@ interface MediaJobRepository extends JpaRepository<MediaJob, Long> {
             where j.id = :id
             """)
     int markFailed(@Param("id") long id, @Param("error") String error, @Param("now") Instant now);
+
+    // DB mục 9: việc DONE quá 7 ngày không còn giá trị chẩn đoán; việc FAILED giữ lại.
+    @Modifying
+    @Query("""
+            delete from MediaJob j
+            where j.status = com.dev.moment.job.MediaJob.Status.DONE and j.updatedAt < :finishedBefore
+            """)
+    int deleteDoneBefore(@Param("finishedBefore") Instant finishedBefore);
+
+    // Việc RUNNING bị khóa từ trước :lockedBefore: worker giữ nó đã chết giữa chừng (DB mục 9).
+    @Query("""
+            select j from MediaJob j
+            where j.status = com.dev.moment.job.MediaJob.Status.RUNNING and j.lockedAt < :lockedBefore
+            order by j.lockedAt
+            """)
+    List<MediaJob> findStuck(@Param("lockedBefore") Instant lockedBefore);
+
+    // Chỉ trả về PENDING khi việc vẫn RUNNING: worker vừa kịp xong thì giữ kết quả của worker.
+    @Modifying
+    @Query("""
+            update MediaJob j set j.status = com.dev.moment.job.MediaJob.Status.PENDING, j.lockedAt = null,
+                j.runAfter = :now, j.updatedAt = :now
+            where j.id = :id and j.status = com.dev.moment.job.MediaJob.Status.RUNNING
+            """)
+    int release(@Param("id") long id, @Param("now") Instant now);
 }
