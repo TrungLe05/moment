@@ -24,4 +24,6 @@ export const platform: Platform = {
   googleSignIn: new WebGoogleSignIn(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? ""),
 };
 
+export { CameraError } from "./camera";
+export type { CameraErrorKind, CameraFacing, CapturedMedia, VideoRecording } from "./camera";
 export type { CameraService, GoogleSignIn, NotificationService, ShareService, TokenStore };
