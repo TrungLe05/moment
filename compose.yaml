@@ -48,7 +48,8 @@ services:
       timeout: 5s
       retries: 20
 
-  # Chạy một lần: tạo bucket riêng tư cho ảnh/video nếu chưa có.
+  # Chạy một lần: tạo bucket riêng tư cho ảnh/video nếu chưa có, rồi đặt CORS để trình duyệt tải file thẳng lên
+  # qua presigned URL (API mục 5, D-041). Bucket vẫn riêng tư: CORS chỉ cho origin của frontend gọi, không mở đọc công khai.
   storage-init:
     image: amazon/aws-cli:2.40.3
     depends_on:
@@ -59,11 +60,16 @@ services:
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
       AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
       S3_BUCKET: ${S3_BUCKET:?Thiếu S3_BUCKET trong .env}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
     entrypoint: ["/bin/sh", "-c"]
     command:
-      - >
-        aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket "$$S3_BUCKET" 2>/dev/null
-        || aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket "$$S3_BUCKET"
+      - |
+        set -e
+        aws --endpoint-url http://rustfs:9000 s3api head-bucket --bucket "$$S3_BUCKET" 2>/dev/null \
+          || aws --endpoint-url http://rustfs:9000 s3api create-bucket --bucket "$$S3_BUCKET"
+        origins=$$(printf '%s' "$$CORS_ALLOWED_ORIGINS" | tr -d ' ' | sed 's/,/","/g')
+        printf '{"CORSRules":[{"AllowedOrigins":["%s"],"AllowedMethods":["PUT","GET","HEAD"],"AllowedHeaders":["*"],"ExposeHeaders":["ETag"],"MaxAgeSeconds":3000}]}' "$$origins" > /tmp/cors.json
+        aws --endpoint-url http://rustfs:9000 s3api put-bucket-cors --bucket "$$S3_BUCKET" --cors-configuration file:///tmp/cors.json
     restart: "no"
 
   # SMTP giả cho dev (D-008): bắt mọi email, xem ở http://localhost:8025.
