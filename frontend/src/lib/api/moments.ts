@@ -43,6 +43,31 @@ export type Moment = {
 
 export type MomentPage = { items: Moment[]; nextCursor: string | null };
 
+/** Tạo khoảnh khắc (API mục 3.4): ảnh cần ORIGINAL + COMPOSED, video một ORIGINAL. */
+export type CreateMomentRequest = {
+  mediaType: "PHOTO" | "VIDEO";
+  source: "CAMERA" | "UPLOAD";
+  mode: "SHARED" | "KEPT";
+  audience: "ALL" | "SELECTED";
+  recipientIds: string[];
+  caption: string | null;
+  layers: unknown[];
+  layersVersion: 1;
+  trimStartMs: number | null;
+  files: { variant: "ORIGINAL" | "COMPOSED"; contentType: string; sizeBytes: number }[];
+};
+
+/** Presigned URL tải một file lên (hạn 15 phút); phải PUT đúng `headers` và đúng số byte đã khai báo. */
+export type UploadTarget = {
+  variant: "ORIGINAL" | "COMPOSED";
+  method: "PUT";
+  url: string;
+  headers: Record<string, string>;
+  expiresAt: string;
+};
+
+export type CreatedMoment = { moment: Moment; uploads: UploadTarget[] };
+
 export const ARCHIVE_SCOPES = ["mine", "received"] as const;
 
 export type ArchiveScope = (typeof ARCHIVE_SCOPES)[number];
@@ -67,6 +92,16 @@ export const momentsApi = {
     ),
 
   detail: (id: string) => apiClient.request<Moment>(`/moments/${encodeURIComponent(id)}`, { auth: true }),
+
+  // Đăng một khoảnh khắc (API mục 5): tạo bản nháp, tải file lên, báo tải xong; lỗi xử lý thì thử lại.
+  create: (body: CreateMomentRequest) =>
+    apiClient.request<CreatedMoment>("/moments", { method: "POST", body, auth: true }),
+
+  complete: (id: string) =>
+    apiClient.request<Moment>(`/moments/${encodeURIComponent(id)}/complete`, { method: "POST", auth: true }),
+
+  retry: (id: string) =>
+    apiClient.request<Moment>(`/moments/${encodeURIComponent(id)}/retry`, { method: "POST", auth: true }),
 
   // Chỉ chủ (API mục 3.4): lưu giữ trả khoảnh khắc đã đổi; xóa trả 204.
   keep: (id: string) =>

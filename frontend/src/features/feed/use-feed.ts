@@ -129,5 +129,10 @@ export function useFeed() {
     setItems((current) => current.filter((moment) => moment.id !== id));
   }, []);
 
-  return { items, status, error, loadMore, refreshMoment, toggleReaction, keepMoment, deleteMoment };
+  /** US-28: khoảnh khắc mình vừa đăng xong đứng đầu feed; đã có (trang vừa tải về) thì giữ nguyên. */
+  const addPublished = useCallback((moment: Moment) => {
+    setItems((current) => (current.some((item) => item.id === moment.id) ? current : [moment, ...current]));
+  }, []);
+
+  return { items, status, error, loadMore, refreshMoment, toggleReaction, keepMoment, deleteMoment, addPublished };
 }
