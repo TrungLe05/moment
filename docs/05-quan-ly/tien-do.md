@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133).
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-137, phần lớn T-136): chụp xong là đăng được lên feed.
 
-**Việc kế tiếp:** tải từ máy (T-134), soạn lớp trang trí (T-135), gửi và chọn người nhận (T-136, T-137), ảnh đại diện (T-116).
+**Việc kế tiếp:** tải từ máy (T-134), soạn lớp trang trí và xuất bản ghép (T-135, phần còn lại của T-136), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 28 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, chụp, xem chi tiết, feed, reaction, lưu giữ và xóa, kho, job định kỳ xong (T-131 → T-133, T-141 → T-144, T-151, T-161); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 29 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, chụp, chọn người nhận, xem chi tiết, feed, reaction, lưu giữ và xóa, kho, job định kỳ xong (T-131 → T-133, T-137, T-141 → T-144, T-151, T-161); T-136 còn xuất bản ghép từ canvas; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,16 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 17/11/2026 · T-137 chọn người nhận, T-136 đăng có ảnh mờ
+
+- Chủ dự án chọn làm luồng gửi trước T-134, T-135 để chụp xong là đăng được. PR #17 (T-133) chưa merge (CI xanh) nên nhánh này tách từ nhánh T-133.
+- Test trước. T-137 (6 test): mặc định chia sẻ 24h gửi tất cả bạn bè, có dòng giải thích từng chế độ; chọn lưu giữ và từng người; bỏ chọn hết thì về "tất cả"; chưa có bạn thì nút gửi tắt, có lối sang trang mời; lỗi lúc tạo báo theo mã và ở lại trang; video gửi một file `ORIGINAL`. T-136 (7 test cho kho khoảnh khắc đang đăng, 4 test feed): tải hai file, báo tải xong, hỏi trạng thái tới READY rồi đưa lên đầu feed; tải lỗi thì thử lại chỉ file còn thiếu; URL hết hạn thì tạo bản nháp mới; xử lý lỗi báo theo `failureReason`, thử lại trên server hoặc hủy; mất mạng lúc hỏi trạng thái thì hỏi tiếp; `MOMENT_NOT_DRAFT` lúc thử lại coi như đã báo xong. 88 test frontend pass; lint, kiểm tra kiểu, build đều qua.
+- Bucket dev chưa có CORS nên trình duyệt không PUT được. Chủ dự án đồng ý thêm `put-bucket-cors` vào `storage-init` (`compose.yaml`) theo `CORS_ALLOWED_ORIGINS`; đã chạy, preflight trả `access-control-allow-origin: http://localhost:3000`. Bucket R2 production cần luật tương tự (ghi vào T-164). Chốt D-041.
+- Chạy thật trên trình duyệt (camera giả từ canvas, API và worker từ bản sao jar): chụp, chọn "Tất cả (1)", gửi; khoảng 0,8 giây về feed với thẻ mờ "Đang đăng…", 1,8 giây "Đang xử lý…", khoảng 10 giây thẻ rõ nét đứng đầu feed. Chặn PUT lên storage thì thẻ mờ báo "Chưa đăng được. Không kết nối được máy chủ…" với Thử lại, Hủy; bỏ chặn rồi Thử lại thì đăng xong sau khoảng 2,3 giây, không phải soạn lại.
+- Sửa thêm khi chạy thử: nút chụp nổi đè hàng nút Lưu giữ, Xóa của thẻ, chuyển xuống thanh riêng dưới cùng; ảnh trong thẻ feed giới hạn theo chiều cao còn lại để cả thẻ nằm trọn trên màn hình thấp.
+- Đồ thị graphify: 2.431 nút, 7.220 cạnh, 117 cụm, không có vòng import.
+- Còn dở: xuất bản ghép từ canvas (chờ T-135); thẻ mờ chỉ nằm trong bộ nhớ, tải lại trang thì mất; chưa thử với camera thật.
 
 ### 17/11/2026 · T-133 chụp ảnh và quay video
 
