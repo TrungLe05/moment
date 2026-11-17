@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151). PR #14 (T-144) và PR của T-151 chờ chủ dự án merge.
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161).
 
-**Việc kế tiếp:** job định kỳ hết hạn và dọn dẹp (T-161), giao diện chụp và soạn (T-133 → T-137), ảnh đại diện (T-116).
+**Việc kế tiếp:** giao diện chụp và soạn (T-133 → T-137), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 26 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết, feed, reaction, lưu giữ và xóa, kho xong (T-131, T-132, T-141 → T-144, T-151); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 27 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết, feed, reaction, lưu giữ và xóa, kho, job định kỳ xong (T-131, T-132, T-141 → T-144, T-151, T-161); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,16 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 17/11/2026 · T-161 job định kỳ
+
+- Chủ dự án đã merge PR #14 (T-144) và #15 (T-151) vào `develop`.
+- Test trước (15 test): hết hạn khoảnh khắc chia sẻ quá `expires_at` ở `PROCESSING`, `READY`, `FAILED` sang `EXPIRED`, bỏ dòng `moment_media`, tạo việc `DELETE_OBJECTS` (BR-14); khoảnh khắc lưu giữ và còn trong 24 giờ không đổi; hết hạn rồi thì lưu giữ trả `409`. Dọn bản nháp quá 1 giờ, khoảnh khắc `FAILED` quá 7 ngày ở mọi chế độ (D-029). Dọn token email hết hạn quá 7 ngày, refresh token theo cả family. Xóa việc `DONE` quá 7 ngày; việc `RUNNING` kẹt quá 10 phút trả về `PENDING`, đã hết 3 lượt thì `FAILED`. Lịch chỉ bật ở tiến trình API, tắt được bằng `moment.housekeeping.enabled` (test tắt). 183 test backend pass.
+- Job khoảnh khắc khóa từng lô 100 dòng bằng `FOR UPDATE SKIP LOCKED`, nên lệnh lưu giữ chạy cùng lúc chờ rồi thấy đã quá hạn.
+- Chốt D-039: xóa refresh token theo cả family (giữ mốc `auth_time`, giữ dấu token đã dùng), trả việc kẹt mỗi 5 phút thay vì mỗi ngày, lịch ở gói mới `housekeeping` để `job` không phụ thuộc ngược `moment`, `auth` (ARCHITECTURE.md trước ghi job định kỳ ở gói `job`, đã sửa).
+- Chạy thật: lùi một khoảnh khắc chia sẻ trong dữ liệu dev quá 24 giờ, bật API từ bản sao jar; sau 1 phút log "Đã chuyển 1 khoảnh khắc chia sẻ sang hết hạn", dòng chuyển `EXPIRED`, 4 dòng `moment_media` bị xóa, worker chạy xong việc xóa 4 file.
+- Đồ thị graphify: 2.311 nút, 6.874 cạnh, 118 cụm, không có vòng import.
+- Chưa làm: ShedLock khi chạy nhiều instance API (DB mục 9, chưa cần trong MVP).
 
 ### 17/11/2026 · T-151 kho lưu giữ
 
