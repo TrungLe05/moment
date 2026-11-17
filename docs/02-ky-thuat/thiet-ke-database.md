@@ -371,7 +371,8 @@ Một số quy tắc không biểu diễn gọn bằng ràng buộc SQL, nên se
 | Hết hạn khoảnh khắc chia sẻ | 5 phút | Chuyển `SHARED` quá `expires_at` sang `EXPIRED`, xóa dòng `moment_media`, tạo việc `DELETE_OBJECTS` với danh sách khóa file |
 | Dọn bản nháp | 15 phút | Xóa khoảnh khắc `DRAFT` tạo quá 1 giờ, kèm việc xóa file đã lỡ tải lên |
 | Dọn khoảnh khắc lỗi | 1 ngày | Xóa khoảnh khắc `FAILED` tạo quá 7 ngày ở mọi chế độ, kèm việc xóa file (D-029) |
-| Dọn token | 1 ngày | Xóa `refresh_tokens` và `email_tokens` đã hết hạn quá 7 ngày |
-| Dọn hàng đợi | 1 ngày | Xóa `media_jobs` ở trạng thái `DONE` quá 7 ngày; việc `RUNNING` bị khóa quá 10 phút trả về `PENDING` |
+| Dọn token | 1 ngày | Xóa `email_tokens` hết hạn quá 7 ngày; `refresh_tokens` xóa theo cả family khi mọi token trong family hết hạn quá 7 ngày (D-039) |
+| Dọn hàng đợi | 1 ngày | Xóa `media_jobs` ở trạng thái `DONE` quá 7 ngày (tính từ `updated_at`) |
+| Trả việc bị kẹt | 5 phút | Việc `RUNNING` bị khóa quá 10 phút trả về `PENDING`; việc đã dùng hết 3 lượt thử thì sang `FAILED`, khoảnh khắc sang `FAILED` với `PROCESSING_ERROR` (D-039) |
 
-Trong MVP, các job chạy bằng `@Scheduled` trong cùng ứng dụng Spring Boot (chỉ một instance). Nếu sau này chạy nhiều instance thì thêm ShedLock để mỗi job chỉ chạy một nơi.
+Trong MVP, các job chạy bằng `@Scheduled` trong tiến trình API (profile `api`, chỉ một instance), lịch ở gói `housekeeping` (T-161). Job khoảnh khắc khóa từng lô 100 dòng bằng `FOR UPDATE SKIP LOCKED`, mỗi lô một transaction, tạo việc `DELETE_OBJECTS` cùng transaction; lệnh lưu giữ chạy cùng lúc phải chờ khóa rồi thấy đã quá hạn (BR-16). Nếu sau này chạy nhiều instance thì thêm ShedLock để mỗi job chỉ chạy một nơi.

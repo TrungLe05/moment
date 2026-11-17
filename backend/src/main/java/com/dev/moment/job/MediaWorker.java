@@ -26,6 +26,8 @@ public class MediaWorker {
     static final Duration FIRST_RETRY_DELAY = Duration.ofSeconds(15);
     /** Lý do khi hết lượt thử vì lỗi tạm thời (D-033). */
     public static final String RETRIES_EXHAUSTED = "PROCESSING_ERROR";
+    /** DB mục 9: việc RUNNING bị khóa lâu hơn thế này coi như worker đã chết (ffmpeg tự dừng sau 2 phút). */
+    static final Duration STUCK_AFTER = Duration.ofMinutes(10);
     // Một lượt chạy không giữ worker quá lâu, để lượt sau còn thấy việc mới.
     private static final int MAX_JOBS_PER_DRAIN = 20;
     private static final int MAX_ERROR_LENGTH = 1000;
@@ -94,6 +96,28 @@ public class MediaWorker {
                         describe(exception), clock.instant()));
             }
         }
+    }
+
+    /**
+     * Job định kỳ (DB mục 9): việc RUNNING bị khóa quá 10 phút (worker chết giữa chừng) trả về PENDING. Việc đã dùng
+     * hết 3 lượt thử thì thất bại hẳn như lỗi lần thứ 3 (ADR 0003, D-039), để một file làm worker chết không bị chạy
+     * lại mãi. Trả số việc đã xử lý.
+     */
+    public int releaseStuckJobs() {
+        Instant now = clock.instant();
+        List<MediaJob> stuck = repository.findStuck(now.minus(STUCK_AFTER));
+        for (MediaJob job : stuck) {
+            if (job.getAttempts() >= MAX_ATTEMPTS) {
+                log.warn("Việc {} ({}) kẹt ở lần thử {}, dừng thử", job.getId(), job.getType(), job.getAttempts());
+                fail(job, handlers.get(job.getType()), RETRIES_EXHAUSTED,
+                        "Quá " + STUCK_AFTER.toMinutes() + " phút chưa xong ở lần thử " + job.getAttempts());
+            } else {
+                log.warn("Việc {} ({}) kẹt ở lần thử {}, trả về hàng đợi", job.getId(), job.getType(),
+                        job.getAttempts());
+                transactionTemplate.executeWithoutResult(status -> repository.release(job.getId(), now));
+            }
+        }
+        return stuck.size();
     }
 
     // Đánh dấu việc và dữ liệu liên quan thất bại trong cùng một transaction.

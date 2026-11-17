@@ -84,7 +84,8 @@ moment/
 | `moment` | Tạo, hoàn tất, xử lý lại, lưu giữ, xóa, feed, kho, `MomentAccessPolicy` | API 3.4 |
 | `reaction` | Thả, gỡ, xem reaction | API 3.5 |
 | `media` | Client object storage, presigned URL, bước xử lý ffmpeg | DB mục 6 |
-| `job` | Hàng đợi `media_jobs`, vòng lặp worker, job định kỳ | DB mục 9, ADR 0003 |
+| `job` | Hàng đợi `media_jobs`, vòng lặp worker, dọn hàng đợi | DB mục 9, ADR 0003 |
+| `housekeeping` | Lịch job định kỳ (`@Scheduled`, chỉ ở tiến trình API); việc cụ thể nằm ở từng tính năng: `MomentHousekeeping`, `TokenHousekeeping`, `MediaJobService`, `MediaWorker` | DB mục 9, D-039 |
 | `common` | Lỗi RFC 9457 và mã lỗi, request id, i18n thông báo, cấu hình bảo mật, CORS, `Clock` | API mục 1, 7 |
 
 Trong một tính năng, luồng đi một chiều: Controller (mỏng, chỉ nhận/trả DTO) → Service (nghiệp vụ, transaction) → Repository. Tính năng này gọi tính năng khác qua service của nó, không đọc thẳng repository của nhau. Ví dụ `reaction` hỏi `moment` có quyền xem không qua `MomentAccessPolicy`, không tự viết lại điều kiện.

@@ -25,4 +25,9 @@ interface EmailTokenRepository extends JpaRepository<EmailToken, UUID> {
             """)
     int invalidateUnused(@Param("userId") UUID userId, @Param("purpose") EmailToken.Purpose purpose,
             @Param("now") Instant now);
+
+    // Job định kỳ (DB mục 9): token email hết hạn trước :expiredBefore.
+    @Modifying
+    @Query("delete from EmailToken t where t.expiresAt < :expiredBefore")
+    int deleteExpiredBefore(@Param("expiredBefore") Instant expiredBefore);
 }

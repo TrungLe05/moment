@@ -37,6 +37,9 @@ spring:
     fallback-to-system-locale: false
 
 moment:
+  # Job định kỳ (DB mục 9) chạy trong tiến trình API; test tắt để tự gọi từng job.
+  housekeeping:
+    enabled: true
   auth:
     jwt-signing-key: ${JWT_SIGNING_KEY:}
     google-client-id: ${GOOGLE_CLIENT_ID:}

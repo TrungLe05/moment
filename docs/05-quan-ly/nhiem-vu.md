@@ -20,7 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-161, rồi T-133 → T-137 |
+| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-133 → T-137, T-116 |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -113,7 +113,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-161 | Job định kỳ: hết hạn, dọn nháp, dọn token, dọn hàng đợi | Must | Chưa làm | DB mục 9, D-029 |
+| T-161 | Job định kỳ: hết hạn, dọn nháp, dọn token, dọn hàng đợi | Must | Xong | DB mục 9, BR-14, D-029, D-039; 15 test (12 với PostgreSQL thật, 3 kiểm tra lịch chỉ bật ở API) |
 | T-162 | PWA: manifest, icon, service worker chỉ cache giao diện tĩnh | Must | Chưa làm | US-50 |
 | T-163 | Script seed tài khoản demo | Must | Chưa làm | US-51, D-027 |
 | T-164 | Docker Compose production, Cloudflare R2, backup PostgreSQL hằng ngày | Must | Chưa làm | US-52; phục vụ frontend và TLS chờ Q-021 |
