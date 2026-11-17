@@ -20,7 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-133 → T-137, T-116 |
+| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-134 → T-137, T-116 |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -88,7 +88,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | --- | --- | --- | --- | --- |
 | T-131 | API tạo khoảnh khắc, cấp presigned URL, `complete`, `retry` | Must | Xong | API mục 3.4, 5; object storage qua AWS SDK v2, test với RustFS thật |
 | T-132 | Media worker: lấy việc từ `media_jobs`, ffmpeg cho ảnh và video, thumbnail, thử lại 3 lần | Must | Xong | ADR 0003, DB mục 6, D-033; 22 test với ffmpeg, PostgreSQL, RustFS thật; có cả việc `DELETE_OBJECTS` |
-| T-133 | Chụp ảnh và quay video 5 giây bằng camera | Must | Chưa làm | US-20, US-21 |
+| T-133 | Chụp ảnh và quay video 5 giây bằng camera | Must | Xong | US-20, US-21, D-040; 12 test giao diện. Lối tải từ máy khi không có camera ở T-134; bước xem lại dừng ở nút Chụp lại cho tới T-135 → T-137 |
 | T-134 | Tải ảnh/video từ máy, chọn đoạn 5 giây, nhãn "tải lên" | Must | Chưa làm | US-22, BR-09, BR-10 |
 | T-135 | Trình soạn lớp trang trí: caption, sticker, biểu ngữ, đếm theo grapheme | Must | Chưa làm | US-23, US-24, BR-11, ADR 0002 |
 | T-136 | Xuất bản ghép từ canvas, tải lên với ảnh xem trước làm mờ (không thanh tiến trình), thử lại khi mất mạng | Must | Chưa làm | US-28 (D-005) |
@@ -99,7 +99,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | T-141 | `MomentAccessPolicy` dùng chung và API chi tiết khoảnh khắc | Must | Xong | BR-13, BR-19, BR-20; 12 test (chủ, người nhận, không phải người nhận, người lạ, hủy kết bạn, mốc 24 giờ, lưu giữ). `myReaction` và `reactionCount` điền ở T-143 |
-| T-142 | Feed API và giao diện vuốt dọc, đồng hồ "còn X giờ" | Must | Xong | US-30, US-31, D-035; 10 test backend, 10 test giao diện. Nút chụp ở trạng thái feed trống chờ T-133; vẽ đủ lớp trang trí trên video chờ T-135 (tạm hiện caption); thanh reaction ở T-143 |
+| T-142 | Feed API và giao diện vuốt dọc, đồng hồ "còn X giờ" | Must | Xong | US-30, US-31, D-035; 10 test backend, 10 test giao diện. Nút chụp ở feed (cả khi trống) thêm ở T-133; vẽ đủ lớp trang trí trên video chờ T-135 (tạm hiện caption); thanh reaction ở T-143 |
 | T-143 | Reaction: thả, đổi, gỡ; chủ xem ai thả gì | Must | Xong | US-32, US-33, BR-21 → BR-24, D-028, D-036; 10 test backend, 7 test giao diện; gói `reaction` hỏi quyền xem qua `MomentAccessPolicy` |
 | T-144 | Chuyển sang lưu giữ và xóa khoảnh khắc | Must | Xong | US-34, US-35, BR-16, BR-18, D-037; 10 test backend, 6 test giao diện |
 

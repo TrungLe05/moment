@@ -24,7 +24,7 @@ export function FeedView() {
   const visible = items.filter((moment) => timeLeft(moment.expiresAt, now) !== null);
 
   return (
-    <div className="flex h-dvh flex-col bg-night text-night-text">
+    <div className="relative flex h-dvh flex-col bg-night text-night-text">
       <header className="mx-auto flex w-full max-w-[390px] shrink-0 items-center justify-between px-4 py-3">
         <h1 className="text-lg font-semibold">{t.appName}</h1>
         <nav className="flex items-center gap-2 text-sm font-semibold">
@@ -42,7 +42,7 @@ export function FeedView() {
 
       {/* Vùng cuộn riêng để cuộn dính theo từng thẻ: snap chỉ có tác dụng trên phần tử đang cuộn. */}
       <main className="min-h-0 flex-1 snap-y snap-mandatory overflow-y-auto">
-        <div className="mx-auto w-full max-w-[390px] px-4 pb-8">
+        <div className="mx-auto w-full max-w-[390px] px-4 pb-28">
         <h2 className="sr-only">{t.feed.title}</h2>
         {status === "done" && visible.length === 0 ? (
           <EmptyFeed />
@@ -86,7 +86,26 @@ export function FeedView() {
         )}
         </div>
       </main>
+      {/* Nút chụp luôn trong tầm tay khi đã có khoảnh khắc; feed trống thì nút chụp nằm giữa màn hình. */}
+      {visible.length > 0 && (
+        <Link
+          href="/compose"
+          aria-label={t.compose.capture}
+          className="absolute bottom-6 left-1/2 flex size-16 -translate-x-1/2 items-center justify-center rounded-full border-4 border-night bg-peach text-peach-ink shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peach"
+        >
+          <CameraIcon />
+        </Link>
+      )}
     </div>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
   );
 }
 
@@ -96,9 +115,16 @@ function EmptyFeed() {
     <section className="flex flex-col items-center gap-3 py-24 text-center">
       <h3 className="text-lg font-semibold">{t.feed.emptyTitle}</h3>
       <p className="text-sm text-night-muted">{t.feed.emptyBody}</p>
+      {/* US-30: feed trống gợi ý chụp khoảnh khắc đầu tiên hoặc mời bạn. */}
+      <Link
+        href="/compose"
+        className="flex h-11 items-center rounded-full bg-peach px-5 text-sm font-semibold text-peach-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peach"
+      >
+        {t.feed.captureFirst}
+      </Link>
       <Link
         href="/friends"
-        className="flex h-11 items-center rounded-full bg-peach px-5 text-sm font-semibold text-peach-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peach"
+        className="flex h-11 items-center rounded-full bg-night-surface px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peach"
       >
         {t.feed.invite}
       </Link>

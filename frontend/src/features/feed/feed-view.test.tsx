@@ -23,7 +23,11 @@ vi.mock("@/features/auth/session", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a>,
+  default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 // jsdom báo ngôn ngữ en-US nên giao diện hiện tiếng Anh.
@@ -125,13 +129,24 @@ describe("FeedView (US-30, US-31)", () => {
     expect(screen.queryByRole("img", { name: "đã hết hạn" })).toBeNull();
   });
 
-  it("suggests inviting friends when the feed is empty", async () => {
+  it("suggests capturing a first moment or inviting friends when the feed is empty", async () => {
     feed.mockResolvedValue({ items: [], nextCursor: null });
 
     renderFeed();
 
     expect(await screen.findByRole("heading", { name: t.feed.emptyTitle })).toBeVisible();
+    expect(screen.getByRole("link", { name: t.feed.captureFirst })).toHaveAttribute("href", "/compose");
     expect(screen.getByRole("link", { name: t.feed.invite })).toHaveAttribute("href", "/friends");
+    expect(screen.queryByRole("link", { name: t.compose.capture })).toBeNull();
+  });
+
+  it("keeps a capture button in reach while scrolling the feed", async () => {
+    feed.mockResolvedValue({ items: [moment()], nextCursor: null });
+
+    renderFeed();
+
+    await screen.findByRole("article");
+    expect(screen.getByRole("link", { name: t.compose.capture })).toHaveAttribute("href", "/compose");
   });
 
   it("shows the error by code and retries the same page", async () => {

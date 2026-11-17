@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161).
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133).
 
-**Việc kế tiếp:** giao diện chụp và soạn (T-133 → T-137), ảnh đại diện (T-116).
+**Việc kế tiếp:** tải từ máy (T-134), soạn lớp trang trí (T-135), gửi và chọn người nhận (T-136, T-137), ảnh đại diện (T-116).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 27 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, xem chi tiết, feed, reaction, lưu giữ và xóa, kho, job định kỳ xong (T-131, T-132, T-141 → T-144, T-151, T-161); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 28 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, chụp, xem chi tiết, feed, reaction, lưu giữ và xóa, kho, job định kỳ xong (T-131 → T-133, T-141 → T-144, T-151, T-161); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,16 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 17/11/2026 · T-133 chụp ảnh và quay video
+
+- Chủ dự án đã merge PR #16 (T-161).
+- Đọc bản mẫu trình soạn (artboard `Soan` của canvas thiết kế, chỉ đọc): header nút đóng và tiêu đề, khung ngắm bo góc 28, nhãn "Video · 4,2s / 5s" có chấm đỏ, nhãn "Chụp trực tiếp".
+- `CameraService` (`src/platform/`) thêm chụp khung hình (JPEG) và quay (`MediaRecorder`, MP4 rồi WebM, tự dừng ở 5 giây, micro tùy chọn), lỗi `getUserMedia` đổi thành loại lỗi riêng (D-040).
+- Test trước (12 test): trang `/compose` mở camera trước, chụp ảnh rồi xem lại, chụp lại mở lại camera và thu hồi object URL; đổi camera đóng luồng cũ; chưa cấp quyền thì hướng dẫn và thử lại; trình duyệt không hỗ trợ thì báo, không mở; quay có đồng hồ, dừng thì hiện video; không quay được thì báo và ở lại khung ngắm; rời trang thì nhả camera. Feed có nút chụp nổi và nút "Chụp khoảnh khắc đầu tiên" khi trống (US-30). 71 test frontend pass; lint, kiểm tra kiểu, build xuất tĩnh đều qua.
+- Chạy thật trên trình duyệt: khung trình duyệt chặn camera nên hiện đúng "Chưa có quyền dùng camera" và nút Thử lại. Thay `getUserMedia` bằng luồng vẽ từ canvas để thử phần còn lại: chụp ra JPEG 640×480; quay video hiện "Video · 1,9s / 5s", tự dừng sau khoảng 5,1 giây, ra `video/mp4` 633 KB không tiếng (micro giả báo không có); chụp lại, nút đóng về feed đều đúng. Chưa thử với camera thật.
+- Đồ thị graphify: 2.358 nút, 7.003 cạnh, 127 cụm, không có vòng import.
+- Còn dở: khung xem trước cắt ảnh cho vừa khung (object-cover) còn file giữ nguyên khung hình gốc, tỉ lệ khung cuối cùng chốt ở trình soạn (T-135); lối tải từ máy khi không có camera (US-20 "vẫn cho dùng US-22") làm ở T-134; bước xem lại chưa có nút đi tiếp cho tới T-135 → T-137.
 
 ### 17/11/2026 · T-161 job định kỳ
 
