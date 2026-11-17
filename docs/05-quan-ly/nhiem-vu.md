@@ -1,6 +1,6 @@
 # Nhiệm vụ
 
-Cập nhật: 16/11/2026 · Liên quan: [Tiến độ](tien-do.md), [Quyết định và câu hỏi mở](quyet-dinh.md), [Kế hoạch tổng quan](../00-tong-quan/ke-hoach-tong-quan.md), [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md)
+Cập nhật: 17/11/2026 · Liên quan: [Tiến độ](tien-do.md), [Quyết định và câu hỏi mở](quyet-dinh.md), [Kế hoạch tổng quan](../00-tong-quan/ke-hoach-tong-quan.md), [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md)
 
 File này là danh sách việc duy nhất của dự án. Mỗi việc có mã `T-xxx` cố định, không đánh lại số; việc bỏ thì đổi trạng thái chứ không xóa dòng. Mã story (`US-xx`) và quy tắc (`BR-xx`) trỏ về đặc tả MVP.
 
@@ -20,7 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: chốt Q-009, rồi T-103, T-106 |
+| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-161, rồi T-133 → T-137 |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -107,7 +107,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
-| T-151 | API kho và giao diện hai tab "Của tôi" / "Được gửi", chi tiết | Must | Chưa làm | US-40 → US-42 |
+| T-151 | API kho và giao diện hai tab "Của tôi" / "Được gửi", chi tiết | Must | Xong | US-40 → US-42, BR-15, BR-19, D-038; 9 test backend, 8 test giao diện |
 
 ### E6 · Ứng dụng và vận hành
 
