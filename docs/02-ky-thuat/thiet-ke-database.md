@@ -1,6 +1,6 @@
 # Thiết kế database
 
-Phiên bản: bản chốt 1 · Cập nhật: 16/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) (mã BR-xx trỏ tới quy tắc nghiệp vụ trong đó)
+Phiên bản: bản chốt 1 · Cập nhật: 17/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) (mã BR-xx trỏ tới quy tắc nghiệp vụ trong đó)
 
 MVP dùng một cơ sở dữ liệu PostgreSQL 16 với 11 bảng (tính cả hàng đợi `media_jobs`). File ảnh/video nằm trong object storage; database chỉ giữ khóa của file. Hàng đợi xử lý media cũng là một bảng PostgreSQL, nên không cần thêm message broker.
 
@@ -300,7 +300,18 @@ ORDER BY m.created_at DESC, m.id DESC
 LIMIT 20;
 ```
 
-**Kho "Được gửi" (US-41):**
+**Kho "Của tôi" (US-40, BR-15):** dùng chỉ mục một phần `moments_owner_kept_idx`, không giới hạn 24 giờ.
+
+```sql
+SELECT m.*
+FROM moments m
+WHERE m.owner_id = :me AND m.mode = 'KEPT' AND m.status = 'READY'
+  AND (m.created_at, m.id) < (:cursorCreatedAt, :cursorId)
+ORDER BY m.created_at DESC, m.id DESC
+LIMIT 30;
+```
+
+**Kho "Được gửi" (US-41):** như feed, code (T-151) thay `EXISTS` trên `friendships` bằng `m.owner_id IN (:friendIds)` lấy qua `FriendService`; không có bạn thì trả trang rỗng, không truy vấn (D-038).
 
 ```sql
 SELECT m.*
