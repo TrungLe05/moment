@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135, PR #19), tải ảnh, video từ máy có chọn đoạn 5 giây (T-134): epic E3 soạn và đăng đã đủ.
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135, PR #19), tải ảnh, video từ máy có chọn đoạn 5 giây (T-134, PR #20): epic E3 soạn và đăng đã đủ. PWA cài được như app (T-162). Ảnh đại diện (T-116) chờ Q-023.
 
-**Việc kế tiếp:** ảnh đại diện (T-116), PWA (T-162), tài khoản demo (T-163), xóa tài khoản (T-118), E2E (T-108, T-165).
+**Việc kế tiếp:** tài khoản demo (T-163), xóa tài khoản (T-118), E2E (T-108, T-165); T-116 sau khi chốt Q-023.
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 32 / 40 | Nền tảng, E1, E2 gần xong; E3 soạn và đăng, E4 xem và tương tác, E5 kho, job định kỳ xong (T-131 → T-137, T-141 → T-144, T-151, T-161); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 33 / 40 | Nền tảng, E1, E2 gần xong; E3 soạn và đăng, E4 xem và tương tác, E5 kho, job định kỳ, PWA xong (T-131 → T-137, T-141 → T-144, T-151, T-161, T-162); T-116 chờ Q-023; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,14 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 18/11/2026 · T-162 PWA, Q-023 ảnh đại diện
+
+- Chủ dự án bảo cứ làm tiếp các việc còn lại. Bắt đầu T-116 thì gặp mâu thuẫn: API ghi `complete` trả user ngay và "server cắt 256×256", nhưng tiến trình API không có ffmpeg (D-034) và ImageIO không đọc WebP. Theo CLAUDE.md ghi thành Q-023 kèm đề xuất, T-116 chuyển "Chờ", không tự chọn.
+- T-162, test trước (6 test): manifest có tên, `standalone`, màu nền tối, icon 192, 512, maskable; service worker phân loại request: file build có băm cache trước, trang mạng trước, icon và manifest cập nhật ngầm, `/api/`, khác origin, không phải GET đi thẳng ra mạng. Test nạp `public/sw.js` trong ngữ cảnh riêng của Node. Icon vẽ bằng ffmpeg (vẽ gấp 4 rồi thu nhỏ cho mép mịn). Đăng ký service worker qua `src/platform/service-worker.ts`, chỉ ở bản build. Chốt D-044. 124 test frontend pass (tính cả T-134); lint, kiểm tra kiểu, build đều qua.
+- Chạy thật bản xuất tĩnh (`out/` qua server tĩnh Python ở cổng 3001): service worker kích hoạt, trang chịu điều khiển sau khi tải lại; manifest, màu chủ đề, icon Apple đúng; cache chỉ có 11 file tĩnh của trang và trang `/`, không có API hay file khác origin; tắt server rồi mở lại trang vẫn hiện từ cache. Đã gỡ service worker và cache thử khỏi khung trình duyệt.
+- Nhánh dựng trên nhánh T-134 (PR #20 chưa merge) để không xung đột ở file nhật ký.
+- Còn dở: chưa bấm "Cài đặt" thật trên Chrome (khung trình duyệt của app không có nút cài); icon tạm tới khi có bộ nhận diện.
 
 ### 18/11/2026 · T-134 tải từ máy
 
