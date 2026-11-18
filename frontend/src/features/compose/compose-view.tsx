@@ -6,12 +6,13 @@ import { useI18n } from "@/i18n/I18nProvider";
 import type { CameraFacing, CapturedMedia } from "@/platform";
 import { CameraCapture } from "./camera-capture";
 import { CapturedPreview } from "./captured-preview";
+import { SendPanel } from "./send-panel";
 
 type Captured = { media: CapturedMedia; url: string };
 
 /**
- * Trang khoảnh khắc mới: chụp hoặc quay (T-133), rồi xem lại. Các bước soạn lớp trang trí, chọn chế độ, người nhận
- * và gửi (T-135 → T-137) nối tiếp sau bước xem lại. Khi xem lại thì gỡ khung ngắm để nhả camera.
+ * Trang khoảnh khắc mới: chụp hoặc quay (T-133), xem lại, chọn chế độ và người nhận rồi gửi (T-136, T-137).
+ * Lớp trang trí (T-135) và tải từ máy (T-134) thêm sau. Khi xem lại thì gỡ khung ngắm để nhả camera.
  */
 export function ComposeView() {
   const { t } = useI18n();
@@ -31,6 +32,10 @@ export function ComposeView() {
     if (captured) URL.revokeObjectURL(captured.url);
     setCaptured(null);
   };
+  // Đã giao file cho kho khoảnh khắc đang đăng: rời trang không được thu hồi URL nó còn dùng.
+  const handOff = () => {
+    capturedRef.current = null;
+  };
 
   return (
     <div className="flex min-h-dvh flex-col bg-night text-night-text">
@@ -48,7 +53,10 @@ export function ComposeView() {
       </header>
       <main className="mx-auto w-full max-w-[390px] px-4 pb-8">
         {captured ? (
-          <CapturedPreview media={captured.media} url={captured.url} onRetake={retake} />
+          <div className="flex flex-col gap-5">
+            <CapturedPreview media={captured.media} url={captured.url} onRetake={retake} />
+            <SendPanel media={captured.media} url={captured.url} onHandedOff={handOff} />
+          </div>
         ) : (
           <CameraCapture
             facing={facing}

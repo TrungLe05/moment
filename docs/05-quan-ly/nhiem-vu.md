@@ -20,7 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-134 → T-137, T-116 |
+| T-136 | Xuất bản ghép từ canvas, tải lên với ảnh mờ, thử lại | Tải lên, ảnh mờ, thử lại xong; xuất bản ghép từ canvas chờ lớp trang trí (T-135). Kế tiếp: T-134, T-135, T-116 |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -91,8 +91,8 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-133 | Chụp ảnh và quay video 5 giây bằng camera | Must | Xong | US-20, US-21, D-040; 12 test giao diện. Lối tải từ máy khi không có camera ở T-134; bước xem lại dừng ở nút Chụp lại cho tới T-135 → T-137 |
 | T-134 | Tải ảnh/video từ máy, chọn đoạn 5 giây, nhãn "tải lên" | Must | Chưa làm | US-22, BR-09, BR-10 |
 | T-135 | Trình soạn lớp trang trí: caption, sticker, biểu ngữ, đếm theo grapheme | Must | Chưa làm | US-23, US-24, BR-11, ADR 0002 |
-| T-136 | Xuất bản ghép từ canvas, tải lên với ảnh xem trước làm mờ (không thanh tiến trình), thử lại khi mất mạng | Must | Chưa làm | US-28 (D-005) |
-| T-137 | Chọn chế độ chia sẻ/lưu giữ và người nhận | Must | Chưa làm | US-26, US-27, BR-12 |
+| T-136 | Xuất bản ghép từ canvas, tải lên với ảnh xem trước làm mờ (không thanh tiến trình), thử lại khi mất mạng | Must | Đang làm | US-28 (D-005), D-041. Tải thẳng lên storage, thẻ mờ ở đầu feed, thử lại hay hủy khi lỗi tải lên hoặc xử lý: xong (15 test). Còn xuất bản ghép từ canvas: chờ T-135, tới đó ảnh gửi bản gốc làm `COMPOSED` |
+| T-137 | Chọn chế độ chia sẻ/lưu giữ và người nhận | Must | Xong | US-26, US-27, BR-12; 6 test giao diện. Chưa có bạn thì không gửi được, có lối sang trang mời |
 
 ### E4 · Xem và tương tác
 
@@ -116,7 +116,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-161 | Job định kỳ: hết hạn, dọn nháp, dọn token, dọn hàng đợi | Must | Xong | DB mục 9, BR-14, D-029, D-039; 15 test (12 với PostgreSQL thật, 3 kiểm tra lịch chỉ bật ở API) |
 | T-162 | PWA: manifest, icon, service worker chỉ cache giao diện tĩnh | Must | Chưa làm | US-50 |
 | T-163 | Script seed tài khoản demo | Must | Chưa làm | US-51, D-027 |
-| T-164 | Docker Compose production, Cloudflare R2, backup PostgreSQL hằng ngày | Must | Chưa làm | US-52; phục vụ frontend và TLS chờ Q-021 |
+| T-164 | Docker Compose production, Cloudflare R2, backup PostgreSQL hằng ngày | Must | Chưa làm | US-52; phục vụ frontend và TLS chờ Q-021; bucket R2 cần luật CORS cho origin frontend như bucket dev (D-041) |
 | T-165 | E2E luồng đăng ký → kết bạn → đăng → reaction | Must | Chưa làm | Đặc tả mục 5 |
 | T-166 | Triển khai lên VPS | Must | Chưa làm | Chặn bởi T-012 |
 

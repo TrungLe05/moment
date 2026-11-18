@@ -25,6 +25,14 @@ vi.mock("@/platform", async (importOriginal) => ({
   },
 }));
 
+// Bước gửi (T-137) tải danh sách bạn và chuyển trang; ở đây chỉ thử phần chụp.
+vi.mock("@/lib/api/friends", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/friends")>()),
+  friendsApi: { list: () => Promise.resolve({ items: [], count: 0, limit: 15 }) },
+}));
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => undefined }) }));
+
 vi.mock("next/link", () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
     <a href={href} {...rest}>

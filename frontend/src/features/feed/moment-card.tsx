@@ -51,7 +51,7 @@ export function MomentCard({ moment, now, onMediaError, onReact, onKeep, onDelet
   return (
     <article aria-label={label} className="flex w-full flex-col gap-3">
       <div
-        className="relative mx-auto max-h-[72dvh] w-full overflow-hidden rounded-[28px] bg-night-surface"
+        className="relative mx-auto max-h-[min(72dvh,calc(100dvh_-_16rem))] w-full overflow-hidden rounded-[28px] bg-night-surface"
         style={{ aspectRatio }}
       >
         {moment.mediaType === "VIDEO" ? (
