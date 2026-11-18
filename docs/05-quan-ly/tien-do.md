@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135, PR #19), tải ảnh, video từ máy có chọn đoạn 5 giây (T-134, PR #20): epic E3 soạn và đăng đã đủ. PWA cài được như app (T-162, PR #21), tài khoản demo tự dựng lại mỗi ngày (T-163). Ảnh đại diện (T-116) chờ Q-023.
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135, PR #19), tải ảnh, video từ máy có chọn đoạn 5 giây (T-134, PR #20): epic E3 soạn và đăng đã đủ. PWA cài được như app (T-162, PR #21), tài khoản demo tự dựng lại mỗi ngày (T-163, PR #22), xóa tài khoản (T-118). Ảnh đại diện (T-116) chờ Q-023.
 
-**Việc kế tiếp:** xóa tài khoản (T-118), E2E (T-108, T-165); T-116 sau khi chốt Q-023; triển khai (T-164) cần đặt biến demo.
+**Việc kế tiếp:** E2E (T-108, T-165); T-116 sau khi chốt Q-023; triển khai (T-164, T-166) chờ Q-010, Q-021 và cần đặt biến demo.
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 34 / 40 | Nền tảng, E1, E2 gần xong; E3 soạn và đăng, E4 xem và tương tác, E5 kho, job định kỳ, PWA, tài khoản demo xong (T-131 → T-137, T-141 → T-144, T-151, T-161 → T-163); T-116 chờ Q-023; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 35 / 40 | Nền tảng, E2 xong; E1 còn ảnh đại diện (T-116, chờ Q-023); E3 soạn và đăng, E4 xem và tương tác, E5 kho, job định kỳ, PWA, tài khoản demo xong (T-131 → T-137, T-141 → T-144, T-151, T-161 → T-163); T-116 chờ Q-023; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,13 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 18/11/2026 · T-118 xóa tài khoản
+
+- Backend, test trước (6 test): `DELETE /me` ở gói `auth`; tài khoản có mật khẩu thiếu hay sai mật khẩu → `INVALID_CREDENTIALS`; tài khoản chỉ có Google quá 5 phút từ lần xác thực → `REAUTH_REQUIRED`, trong 5 phút thì xóa được; tài khoản demo → `DEMO_ACCOUNT_READONLY`; xóa user cùng khoảnh khắc, bạn bè, reaction, token theo cascade, khóa file xếp vào một việc `DELETE_OBJECTS`; bản web nhận Set-Cookie xóa `moment_rt`. Thêm `UserService.deleteAccount`, `MomentHousekeeping.objectKeysOwnedBy`. Chốt D-046. 195 test backend pass.
+- Frontend (4 test): trang cài đặt có mục "Xóa tài khoản" với cảnh báo và ô mật khẩu hiện tại; server đòi đăng nhập lại thì hiện nút Google, đăng nhập xong xóa tiếp; tài khoản demo chỉ thấy dòng "không xóa được". 130 test frontend pass; lint, kiểm tra kiểu đều qua.
+- Chạy thật: tạo tài khoản dùng một lần qua API, đăng nhập trên trình duyệt; mật khẩu sai báo lỗi và tài khoản còn nguyên; mật khẩu đúng thì về trang đăng nhập, DB không còn dòng user, đăng nhập lại trả 401.
+- Còn dở: câu lỗi mật khẩu sai dùng chung với màn đăng nhập ("Email hoặc mật khẩu không đúng."); luồng Google lại chỉ thử bằng test (khung trình duyệt không đăng nhập Google được); chưa giới hạn số lần nhập sai riêng cho thao tác xóa.
 
 ### 18/11/2026 · T-163 tài khoản demo
 
