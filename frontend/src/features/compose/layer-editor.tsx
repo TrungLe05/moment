@@ -18,8 +18,18 @@ import {
 } from "@/features/layers/model";
 import { LayerTextPanel } from "./layer-text-panel";
 
-/** Ảnh hoặc video đang soạn; `width`, `height` là kích thước thật để giữ đúng tỉ lệ khung. */
-export type EditorMedia = { kind: "photo" | "video"; url: string; width: number; height: number };
+/**
+ * Ảnh hoặc video đang soạn; `width`, `height` là kích thước thật để giữ đúng tỉ lệ khung. `clip` là đoạn 5 giây đã
+ * chọn của video tải lên (US-22): xem trước chỉ lặp trong đoạn này.
+ */
+export type EditorMedia = {
+  kind: "photo" | "video";
+  url: string;
+  width: number;
+  height: number;
+  source?: "CAMERA" | "UPLOAD";
+  clip?: { startMs: number; lengthMs: number } | null;
+};
 
 type Props = {
   media: EditorMedia;
@@ -43,6 +53,14 @@ const toDegrees = (radians: number) => (radians * 180) / Math.PI;
 function layerLabel(t: Messages, layer: Layer): string {
   const template = layer.type === "caption" ? t.compose.layerCaption : layer.type === "sticker" ? t.compose.layerSticker : t.compose.layerBanner;
   return format(template, { text: layer.text });
+}
+
+// Video tải lên dài hơn 5 giây: tua về đầu đoạn đã chọn khi phát ra ngoài đoạn.
+function keepInClip(video: HTMLVideoElement, clip: EditorMedia["clip"]) {
+  if (!clip) return;
+  const start = clip.startMs / 1000;
+  const end = (clip.startMs + clip.lengthMs) / 1000;
+  if (video.currentTime < start || video.currentTime >= end) video.currentTime = start;
 }
 
 // Góc dưới phải và trên trái của lớp sau khi xoay, phóng to: chỗ đặt tay cầm và nút xóa.
@@ -70,6 +88,7 @@ export function LayerEditor({ media, layers, onChange }: Props) {
   const gesture = useRef<Gesture | null>(null);
   const aspect = media.width > 0 && media.height > 0 ? media.width / media.height : 3 / 4;
   const rect = useContentRect(frame, aspect);
+  const uploaded = media.source === "UPLOAD";
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
   const caption = layers.find((layer) => layer.type === "caption");
@@ -203,9 +222,18 @@ export function LayerEditor({ media, layers, onChange }: Props) {
       <div ref={frame} className="relative aspect-[358/410] w-full overflow-hidden rounded-[28px] bg-night-surface">
         {media.kind === "photo" ? (
           // eslint-disable-next-line @next/next/no-img-element -- ảnh ở máy (object URL), next/image không dùng được.
-          <img src={media.url} alt={t.compose.capturedPhoto} className="h-full w-full object-contain" />
+          <img src={media.url} alt={uploaded ? t.compose.pickedPhoto : t.compose.capturedPhoto} className="h-full w-full object-contain" />
         ) : (
-          <video src={media.url} aria-label={t.compose.capturedVideo} autoPlay loop muted playsInline className="h-full w-full object-contain" />
+          <video
+            src={media.url}
+            aria-label={uploaded ? t.compose.pickedVideo : t.compose.capturedVideo}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-contain"
+            onTimeUpdate={(event) => keepInClip(event.currentTarget, media.clip)}
+          />
         )}
         <div
           ref={overlay}
@@ -268,7 +296,7 @@ export function LayerEditor({ media, layers, onChange }: Props) {
         </div>
         {/* BR-09: nguồn của khoảnh khắc. */}
         <span className="pointer-events-none absolute top-3.5 right-3.5 rounded-full bg-night/60 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
-          {t.compose.camera}
+          {uploaded ? t.feed.uploaded : t.compose.camera}
         </span>
       </div>
       <p id={helpId} className="sr-only">

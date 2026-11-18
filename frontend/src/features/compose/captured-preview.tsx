@@ -3,25 +3,37 @@
 import { useI18n } from "@/i18n/I18nProvider";
 import type { Layer } from "@/features/layers/model";
 import type { CapturedMedia } from "@/platform";
+import { MAX_VIDEO_MS } from "./camera-capture";
+import type { MediaSource } from "./compose-view";
 import { LayerEditor } from "./layer-editor";
 
 type Props = {
   media: CapturedMedia;
   /** Object URL của file ở máy; trang soạn tạo và thu hồi. */
   url: string;
+  source: MediaSource;
+  /** Video tải lên: xem trước chỉ lặp đoạn 5 giây đã chọn. */
+  trimStartMs: number | null;
   layers: Layer[];
   onLayersChange: (layers: Layer[]) => void;
   onRetake: () => void;
 };
 
 /** Xem lại ảnh hoặc video vừa chụp (US-20, US-21) và trang trí (US-23, US-24, T-135) trước khi gửi. */
-export function CapturedPreview({ media, url, layers, onLayersChange, onRetake }: Props) {
+export function CapturedPreview({ media, url, source, trimStartMs, layers, onLayersChange, onRetake }: Props) {
   const { t } = useI18n();
 
   return (
     <div className="flex flex-col gap-4">
       <LayerEditor
-        media={{ kind: media.kind, url, width: media.width, height: media.height }}
+        media={{
+          kind: media.kind,
+          url,
+          width: media.width,
+          height: media.height,
+          source,
+          clip: trimStartMs === null ? null : { startMs: trimStartMs, lengthMs: MAX_VIDEO_MS },
+        }}
         layers={layers}
         onChange={onLayersChange}
       />
@@ -30,7 +42,7 @@ export function CapturedPreview({ media, url, layers, onLayersChange, onRetake }
         onClick={onRetake}
         className="mx-auto h-11 rounded-full bg-night-surface px-5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-peach"
       >
-        {t.compose.retake}
+        {source === "UPLOAD" ? t.compose.pickAgain : t.compose.retake}
       </button>
     </div>
   );

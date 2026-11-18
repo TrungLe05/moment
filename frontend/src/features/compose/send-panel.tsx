@@ -14,15 +14,20 @@ import { useFriendList } from "./use-friend-list";
 
 type Props = {
   media: CapturedMedia;
+  source: "CAMERA" | "UPLOAD";
+  trimStartMs: number | null;
   layers: Layer[];
 };
+
+// API mục 3.4: bản ghép chỉ nhận JPEG hoặc WebP.
+const COMPOSED_TYPES = ["image/jpeg", "image/webp"];
 
 /**
  * Bước gửi: chọn chế độ, người nhận (T-137), xuất bản ghép với ảnh (T-136, ADR 0002) rồi tạo khoảnh khắc. Tạo xong thì
  * về feed, nơi khoảnh khắc hiện mờ trong lúc tải lên và xử lý (US-28). Lỗi lúc tạo báo ngay ở đây theo mã, nội dung
  * đã soạn vẫn giữ nguyên.
  */
-export function SendPanel({ media, layers }: Props) {
+export function SendPanel({ media, source, trimStartMs, layers }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const friendList = useFriendList();
@@ -37,8 +42,9 @@ export function SendPanel({ media, layers }: Props) {
     let composed: Blob | null = null;
     if (media.kind === "photo") {
       try {
-        // Chưa có lớp thì bản ghép chính là ảnh chụp, khỏi vẽ lại.
-        composed = layers.length > 0 ? await exportComposed(media.blob, layers) : media.blob;
+        // Chưa có lớp và ảnh đã là JPEG/WebP thì bản ghép chính là ảnh gốc, khỏi vẽ lại; PNG luôn vẽ lại thành JPEG.
+        const redraw = layers.length > 0 || !COMPOSED_TYPES.includes(media.contentType);
+        composed = redraw ? await exportComposed(media.blob, layers) : media.blob;
       } catch {
         setError(t.compose.composeFailed);
         setSending(false);
@@ -49,7 +55,7 @@ export function SendPanel({ media, layers }: Props) {
     // thu hồi URL này; tạo không được thì thu hồi ngay.
     const previewUrl = URL.createObjectURL(composed ?? media.blob);
     try {
-      await pendingMoments.submit(buildDraft(media, composed, layers, selection, previewUrl));
+      await pendingMoments.submit(buildDraft(media, source, trimStartMs, composed, layers, selection, previewUrl));
       router.push("/");
     } catch (caught: unknown) {
       URL.revokeObjectURL(previewUrl);
