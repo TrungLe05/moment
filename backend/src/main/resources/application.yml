@@ -40,6 +40,11 @@ moment:
   # Job định kỳ (DB mục 9) chạy trong tiến trình API; test tắt để tự gọi từng job.
   housekeeping:
     enabled: true
+  # Tài khoản demo (US-51, D-027): tắt mặc định; bật thì dựng lại dữ liệu demo lúc khởi động và mỗi ngày.
+  demo:
+    enabled: ${MOMENT_DEMO_ENABLED:false}
+    email: ${MOMENT_DEMO_EMAIL:}
+    password: ${MOMENT_DEMO_PASSWORD:}
   auth:
     jwt-signing-key: ${JWT_SIGNING_KEY:}
     google-client-id: ${GOOGLE_CLIENT_ID:}

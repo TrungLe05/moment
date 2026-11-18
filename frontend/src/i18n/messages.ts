@@ -24,6 +24,11 @@ const vi = {
     resendVerification: "Gửi lại email xác thực",
     resendDone: "Đã gửi lại email xác thực. Hãy kiểm tra hộp thư.",
     google: "Đăng nhập bằng Google",
+    demoTitle: "Tài khoản demo",
+    demoBody: "Dùng thử ngay với bạn bè và khoảnh khắc có sẵn. Dữ liệu demo được dựng lại mỗi ngày.",
+    demoEmail: "Email: {email}",
+    demoPassword: "Mật khẩu: {password}",
+    demoLogin: "Đăng nhập bằng tài khoản demo",
   },
   register: {
     title: "Tạo tài khoản",
@@ -315,6 +320,11 @@ const en: Messages = {
     resendVerification: "Resend verification email",
     resendDone: "Verification email sent again. Please check your inbox.",
     google: "Sign in with Google",
+    demoTitle: "Demo account",
+    demoBody: "Try it right away with friends and moments already in place. Demo data is rebuilt every day.",
+    demoEmail: "Email: {email}",
+    demoPassword: "Password: {password}",
+    demoLogin: "Sign in with the demo account",
   },
   register: {
     title: "Create account",

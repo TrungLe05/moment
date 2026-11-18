@@ -85,6 +85,7 @@ moment/
 | `reaction` | Thả, gỡ, xem reaction | API 3.5 |
 | `media` | Client object storage, presigned URL, bước xử lý ffmpeg | DB mục 6 |
 | `job` | Hàng đợi `media_jobs`, vòng lặp worker, dọn hàng đợi | DB mục 9, ADR 0003 |
+| `demo` | Dựng lại dữ liệu tài khoản demo lúc khởi động và mỗi ngày, chỉ khi bật `moment.demo.enabled` | US-51, D-027, D-045 |
 | `housekeeping` | Lịch job định kỳ (`@Scheduled`, chỉ ở tiến trình API); việc cụ thể nằm ở từng tính năng: `MomentHousekeeping`, `TokenHousekeeping`, `MediaJobService`, `MediaWorker` | DB mục 9, D-039 |
 | `common` | Lỗi RFC 9457 và mã lỗi, request id, i18n thông báo, cấu hình bảo mật, CORS, `Clock` | API mục 1, 7 |
 

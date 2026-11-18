@@ -12,6 +12,7 @@ import { ApiError } from "@/lib/api";
 import { accountApi } from "@/lib/api/account";
 import { safeReturnPath, withReturnPath } from "@/lib/return-path";
 import { useAsyncAction } from "@/lib/use-async-action";
+import { DemoAccount } from "./demo-account";
 import { GoogleButton } from "./google-button";
 import { useSession } from "./session";
 
@@ -61,6 +62,7 @@ export function LoginForm() {
         </Button>
       </form>
       <GoogleButton onIdToken={onIdToken} />
+      <DemoAccount disabled={login.pending || google.pending} onLogin={(demoEmail, demoPassword) => void login.run(demoEmail, demoPassword)} />
       <div className="flex flex-col gap-1 text-sm">
         <Link href="/forgot-password" className="underline underline-offset-4">
           {t.login.forgotPassword}

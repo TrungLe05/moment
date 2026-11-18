@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { messages } from "@/i18n/messages";
 import { ApiError } from "@/lib/api/errors";
@@ -41,6 +41,38 @@ function renderForm() {
     </I18nProvider>,
   );
 }
+
+describe("LoginForm demo account (US-51)", () => {
+  beforeEach(() => {
+    login.mockReset();
+    startSession.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("shows the demo sign-in details from the build settings and signs in with them", async () => {
+    vi.stubEnv("NEXT_PUBLIC_DEMO_EMAIL", "demo@example.test");
+    vi.stubEnv("NEXT_PUBLIC_DEMO_PASSWORD", testPassword);
+    login.mockResolvedValue({ accessToken: "a", expiresIn: 900, user: { id: "demo" } });
+    renderForm();
+
+    const box = screen.getByRole("region", { name: messages.en.login.demoTitle });
+    expect(box).toHaveTextContent("demo@example.test");
+    expect(box).toHaveTextContent(testPassword);
+    await userEvent.click(screen.getByRole("button", { name: messages.en.login.demoLogin }));
+
+    expect(login).toHaveBeenCalledWith("demo@example.test", testPassword);
+    expect(startSession).toHaveBeenCalled();
+  });
+
+  it("hides the demo box when no demo account is configured", () => {
+    renderForm();
+
+    expect(screen.queryByRole("region", { name: messages.en.login.demoTitle })).toBeNull();
+  });
+});
 
 describe("LoginForm (US-03)", () => {
   beforeEach(() => {
