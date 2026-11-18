@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135): chụp, trang trí, đăng lên feed đã chạy trọn.
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135, PR #19), tải ảnh, video từ máy có chọn đoạn 5 giây (T-134): epic E3 soạn và đăng đã đủ.
 
-**Việc kế tiếp:** tải từ máy (T-134), ảnh đại diện (T-116), PWA (T-162), tài khoản demo (T-163).
+**Việc kế tiếp:** ảnh đại diện (T-116), PWA (T-162), tài khoản demo (T-163), xóa tài khoản (T-118), E2E (T-108, T-165).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 31 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, chụp, trang trí, gửi, xem chi tiết, feed, reaction, lưu giữ và xóa, kho, job định kỳ xong (T-131 → T-133, T-135 → T-137, T-141 → T-144, T-151, T-161); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 32 / 40 | Nền tảng, E1, E2 gần xong; E3 soạn và đăng, E4 xem và tương tác, E5 kho, job định kỳ xong (T-131 → T-137, T-141 → T-144, T-151, T-161); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,15 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 18/11/2026 · T-134 tải từ máy
+
+- Chủ dự án đã merge PR #18 (T-136, T-137) và #19 (T-135); nhánh này tách từ `develop` mới.
+- Server đã nhận `trimStartMs` cho video tải lên (T-131), chỉ cần làm ở frontend.
+- Test trước (4 test luật file, 8 test giao diện): nhận JPEG, PNG, WebP tới 15 MB và MP4, WebM, MOV tới 50 MB theo loại MIME; HEIC, GIF hay quá dung lượng báo ngay, không đọc file; video quá 60 giây và file không mở được báo trước khi tải lên; ảnh có nhãn "tải lên" (BR-09), gửi `source: UPLOAD`; PNG vẽ lại thành JPEG làm `COMPOSED`; video 20 giây có thanh chọn từ 0 tới 15, chọn 7 thì gửi `trimStartMs` 7000; video ≤ 5 giây không có thanh, không gửi điểm cắt; camera bị từ chối vẫn tải từ máy được. Chốt D-043. 118 test frontend pass; lint, kiểm tra kiểu, build đều qua.
+- Chạy thật trên trình duyệt (API, worker từ bản sao jar, Postgres ở 5433): quay sẵn video MP4 12 giây từ canvas rồi gán vào ô chọn file; nhãn "tải lên", thanh chọn 0 → 6,9; kéo tới giây 4, xem trước lặp trong 4–9 giây; gửi xong DB ghi `trim_start_ms` 4000, thời lượng 5,02 giây, thumbnail là khung "giây 4". Ảnh PNG 800×600: `ORIGINAL` giữ PNG, `COMPOSED` là JPEG, xử lý xong.
+- Sửa sau khi chạy thử: ảnh, video chọn từ máy có nhãn đọc màn hình "Ảnh đã chọn", "Video đã chọn" thay cho "vừa chụp"; nút quay lại ghi "Chọn lại".
+- Còn dở: ảnh xem trước mờ ở feed với video tải lên là khung đầu của cả file, chưa phải đầu đoạn đã chọn.
 
 ### 18/11/2026 · T-135 trình soạn lớp trang trí
 
