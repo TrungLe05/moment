@@ -1,6 +1,6 @@
 # Tiến độ
 
-Cập nhật: 17/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Quyết định và câu hỏi mở](quyet-dinh.md)
+Cập nhật: 18/11/2026 · Liên quan: [Nhiệm vụ](nhiem-vu.md), [Quyết định và câu hỏi mở](quyet-dinh.md)
 
 ## Trạng thái hiện tại
 
@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-137, phần lớn T-136): chụp xong là đăng được lên feed.
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135): chụp, trang trí, đăng lên feed đã chạy trọn.
 
-**Việc kế tiếp:** tải từ máy (T-134), soạn lớp trang trí và xuất bản ghép (T-135, phần còn lại của T-136), ảnh đại diện (T-116).
+**Việc kế tiếp:** tải từ máy (T-134), ảnh đại diện (T-116), PWA (T-162), tài khoản demo (T-163).
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 29 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, chụp, chọn người nhận, xem chi tiết, feed, reaction, lưu giữ và xóa, kho, job định kỳ xong (T-131 → T-133, T-137, T-141 → T-144, T-151, T-161); T-136 còn xuất bản ghép từ canvas; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 31 / 40 | Nền tảng, E1, E2 gần xong; tạo, xử lý, chụp, trang trí, gửi, xem chi tiết, feed, reaction, lưu giữ và xóa, kho, job định kỳ xong (T-131 → T-133, T-135 → T-137, T-141 → T-144, T-151, T-161); T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,18 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 18/11/2026 · T-135 trình soạn lớp trang trí
+
+- PR #18 (T-136, T-137) CI xanh, chưa merge; nhánh này tách từ nhánh đó.
+- Đọc ADR 0002, DB mục 5, `LayerRules` phía server. Đặc tả chưa nói danh sách biểu ngữ, kiểu sticker và caption, font: chốt tạm ở D-042 (font hệ thống tới khi xong T-010), chờ chủ dự án xem lại.
+- Gói `src/features/layers/` dùng chung: mô hình lớp và luật BR-11 (một caption, tối đa 20 lớp, giới hạn ký tự theo grapheme, giới hạn tọa độ, phóng to, góc), hàm dàn chữ theo tỉ lệ bề rộng khung (caption tự ngắt dòng trong vùng an toàn 84%, tự thu nhỏ để vừa 3 dòng), vẽ ra canvas, hiển thị đè lên video.
+- Test trước: 9 test mô hình và dàn chữ, 8 test trình soạn (thêm caption có bộ đếm, gõ quá 80 ký tự không nhận thêm; sửa caption có sẵn thay vì thêm cái thứ hai; sticker chọn kiểu, để trống thì bỏ; biểu ngữ dựng sẵn; bàn phím di chuyển, phóng to, xoay, xóa; kéo bằng con trỏ; tay cầm xoay và phóng to; đủ 20 lớp thì tắt nút thêm), 1 test gửi ảnh có lớp (xuất bản ghép, gửi `layers` và `caption`). Video ở feed và kho vẽ đủ lớp thay cho caption tạm. 106 test frontend pass; lint, kiểm tra kiểu, build đều qua.
+- Chạy thật trên trình duyệt (camera giả, API và worker từ bản sao jar): thêm caption (bộ đếm 28/80), sticker cam đào, biểu ngữ "Chào buổi sáng"; kéo biểu ngữ lên góc, xoay sticker 20° và phóng to 1,3 lần bằng tay cầm (khung trình duyệt bị ẩn nên phát sự kiện con trỏ bằng JS, đi qua đúng handler React với bố cục thật); gửi, thẻ mờ rồi rõ nét. Tải ảnh `DISPLAY` worker tạo về xem: đủ ba lớp, đúng chỗ, đúng góc, chữ có dấu chuẩn. Video có caption: lớp vẽ đè đúng vùng video 720×960 trong khung.
+- Sửa khi chạy thử: nút góc che chữ ở hai đầu lớp, đẩy ra ngoài góc thêm 10 px; lớp trên video đo khung qua ref của component cha nên lần đo đầu ra 0×0 (ref cha gắn sau effect của con), cho `VideoLayers` tự đo lớp phủ của nó.
+- Máy dev: cổng 5432 đang thuộc Postgres của dự án khác (`chamcode`), container của moment đã dừng; chạy Postgres moment ở 5433 qua biến môi trường của phiên (`POSTGRES_PORT=5433`), không sửa `.env`, không đụng dự án kia.
+- Đồ thị graphify: 2.507 nút, 7.454 cạnh, 128 cụm, không có vòng import.
+- Còn dở: thao tác hai ngón trên màn hình cảm ứng (đang dùng tay cầm, chạy được với cảm ứng một ngón); chưa thử với camera thật.
 
 ### 17/11/2026 · T-137 chọn người nhận, T-136 đăng có ảnh mờ
 
