@@ -5,6 +5,7 @@ import { I18nProvider } from "@/i18n/I18nProvider";
 import { format, messages } from "@/i18n/messages";
 import { ApiError } from "@/lib/api/errors";
 import type { FriendList } from "@/lib/api/friends";
+import type { Layer } from "@/features/layers/model";
 import type { CapturedMedia } from "@/platform";
 import { ComposeView } from "./compose-view";
 import type { PendingDraft } from "./pending-moments";
@@ -14,6 +15,7 @@ const startRecording = vi.fn();
 const listFriends = vi.fn<() => Promise<FriendList>>();
 const submit = vi.fn<(draft: PendingDraft) => Promise<void>>();
 const push = vi.fn<(href: string) => void>();
+const exportComposed = vi.fn<(photo: Blob, layers: Layer[]) => Promise<Blob>>();
 
 vi.mock("@/platform", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/platform")>()),
@@ -39,6 +41,11 @@ vi.mock("./pending-moments", async (importOriginal) => ({
 }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+
+// Canvas không có trong jsdom: xuất bản ghép thử trên trình duyệt thật.
+vi.mock("@/features/layers/draw", () => ({
+  exportComposed: (photo: Blob, layers: Layer[]) => exportComposed(photo, layers),
+}));
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
@@ -75,7 +82,8 @@ describe("ComposeView send step (US-26, US-27, US-28)", () => {
     takePhoto.mockResolvedValue(photo);
     listFriends.mockResolvedValue(twoFriends);
     submit.mockResolvedValue(undefined);
-    URL.createObjectURL = vi.fn(() => "blob:captured");
+    let created = 0;
+    URL.createObjectURL = vi.fn(() => `blob:${++created}`);
     URL.revokeObjectURL = vi.fn();
   });
 
@@ -107,11 +115,36 @@ describe("ComposeView send step (US-26, US-27, US-28)", () => {
         ],
       },
       files: { ORIGINAL: photoBlob, COMPOSED: photoBlob },
-      previewUrl: "blob:captured",
+      // URL riêng cho ảnh mờ ở feed (blob:1 là URL xem lại của trang soạn).
+      previewUrl: "blob:2",
     });
     expect(push).toHaveBeenCalledWith("/");
-    // Object URL giao cho kho khoảnh khắc đang đăng, trang soạn không thu hồi nó.
-    expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+    // Chưa có lớp thì bản ghép chính là ảnh chụp, không vẽ lại.
+    expect(exportComposed).not.toHaveBeenCalled();
+    expect(URL.revokeObjectURL).not.toHaveBeenCalledWith("blob:2");
+  });
+
+  // ADR 0002, T-136: ảnh có lớp trang trí thì gửi thêm bản ghép vẽ từ canvas; cột caption chép chữ của lớp caption.
+  it("sends the composed image, the layers and the caption text", async () => {
+    const composedBlob = new Blob(["composed-jpeg-bytes"], { type: "image/jpeg" });
+    exportComposed.mockResolvedValue(composedBlob);
+    await captureAndOpenSendStep();
+    await userEvent.click(screen.getByRole("button", { name: t.compose.addCaption }));
+    await userEvent.type(screen.getByRole("textbox", { name: t.compose.captionField }), "trời đẹp");
+    await userEvent.click(screen.getByRole("button", { name: t.compose.done }));
+    await screen.findByRole("button", { name: format(t.compose.everyone, { count: "2" }) });
+
+    await userEvent.click(screen.getByRole("button", { name: t.compose.send }));
+
+    expect(exportComposed).toHaveBeenCalledWith(photoBlob, [expect.objectContaining({ type: "caption", text: "trời đẹp" })]);
+    const draft = submit.mock.calls[0]![0];
+    expect(draft.request.caption).toBe("trời đẹp");
+    expect(draft.request.layers).toEqual([expect.objectContaining({ type: "caption", text: "trời đẹp", style: "pill-dark" })]);
+    expect(draft.request.files).toEqual([
+      { variant: "ORIGINAL", contentType: "image/jpeg", sizeBytes: photoBlob.size },
+      { variant: "COMPOSED", contentType: "image/jpeg", sizeBytes: composedBlob.size },
+    ]);
+    expect(draft.files).toEqual({ ORIGINAL: photoBlob, COMPOSED: composedBlob });
   });
 
   it("keeps the moment forever for the friends I pick", async () => {
@@ -169,6 +202,8 @@ describe("ComposeView send step (US-26, US-27, US-28)", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(t.errors.NOT_FRIENDS);
     expect(push).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: t.compose.send })).toBeEnabled();
+    // URL xem trước tạo cho lần gửi hỏng được thu hồi ngay.
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:2");
   });
 
   it("sends a recorded video as a single original file", async () => {

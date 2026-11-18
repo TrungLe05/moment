@@ -1,6 +1,6 @@
 # Thiết kế database
 
-Phiên bản: bản chốt 1 · Cập nhật: 17/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) (mã BR-xx trỏ tới quy tắc nghiệp vụ trong đó)
+Phiên bản: bản chốt 1 · Cập nhật: 18/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md) (mã BR-xx trỏ tới quy tắc nghiệp vụ trong đó)
 
 MVP dùng một cơ sở dữ liệu PostgreSQL 16 với 11 bảng (tính cả hàng đợi `media_jobs`). File ảnh/video nằm trong object storage; database chỉ giữ khóa của file. Hàng đợi xử lý media cũng là một bảng PostgreSQL, nên không cần thêm message broker.
 
@@ -245,6 +245,7 @@ stateDiagram-v2
 
 - `type`: `caption` (tối đa 1), `sticker` (chữ tự nhập), `banner` (biểu ngữ dựng sẵn, tham chiếu theo `bannerId`).
 - `style` và `bannerId` là mã do client định nghĩa; server chỉ kiểm tra là chuỗi ngắn hợp lệ.
+- Mã client đang dùng (D-042): caption `pill-dark`; sticker `paper`, `peach`, `night`; biểu ngữ `good-morning`, `miss-you`, `on-my-way`, `weekend`, `hello`, `no-cap` (kiểu `ribbon-cream`, `ribbon-peach`), chữ biểu ngữ lưu trong `text`. Các mã trong ví dụ trên chỉ minh họa.
 - Server kiểm tra: tối đa 20 lớp, tối đa 1 caption, giới hạn ký tự theo BR-11, `x`, `y` trong 0–1, `scale` trong 0.2–5, `rotation` trong −180–180.
 - Cột `caption` của bảng `moments` chép lại chữ của lớp `caption` để hiển thị ở các chỗ không vẽ lớp (danh sách, tìm kiếm sau này).
 - Đổi cấu trúc JSON thì tăng `layers_version` và viết code chuyển đổi khi đọc.

@@ -97,7 +97,7 @@ Trong một tính năng, luồng đi một chiều: Controller (mỏng, chỉ nh
 | Thư mục | Chứa |
 | --- | --- |
 | `src/app/` | Route của Next.js, chỉ trang tĩnh; mỗi trang bọc `PageGate` để chờ khôi phục phiên và điều hướng theo trạng thái. Route động như `/moment/[id]` xử lý phía client, chốt khi làm T-141 |
-| `src/features/<tính năng>/` | Component và hook của từng tính năng: đã có `auth` (phiên đăng nhập, form), `onboarding`, `settings`, `home`, `friends`, `invite`, `feed`, `archive`, `compose` (trang khoảnh khắc mới: chụp, quay; soạn và gửi thêm ở T-134 → T-137) |
+| `src/features/<tính năng>/` | Component và hook của từng tính năng: đã có `auth` (phiên đăng nhập, form), `onboarding`, `settings`, `home`, `friends`, `invite`, `feed`, `archive`, `compose` (trang khoảnh khắc mới: chụp, quay, trang trí, gửi; tải từ máy ở T-134), `layers` (lớp trang trí dùng chung: mô hình, dàn chữ, vẽ ra canvas, hiển thị đè lên video) |
 | `src/platform/` | Interface phụ thuộc nền tảng và bản cài đặt cho web (mục 7) |
 | `src/lib/api/` | Client HTTP chung: gắn access token, tự refresh một lần khi 401 (gộp các request cùng lúc), đọc lỗi Problem Details theo `code`; hàm gọi từng endpoint |
 | `src/i18n/` | Chuỗi giao diện `vi` và `en` |

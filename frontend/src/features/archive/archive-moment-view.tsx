@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { errorText } from "@/i18n/error-text";
 import { useI18n } from "@/i18n/I18nProvider";
 import { format } from "@/i18n/messages";
+import { VideoLayers } from "@/features/layers/layer-view";
 import { momentsApi, type Moment } from "@/lib/api/moments";
 import { postedDate } from "./months";
 
@@ -88,7 +89,7 @@ function MomentDetail({ moment, onMediaError }: { moment: Moment; onMediaError: 
   return (
     <article aria-label={label} className="flex flex-col gap-3">
       <h1 className="sr-only">{label}</h1>
-      <div className="mx-auto max-h-[72dvh] w-full overflow-hidden rounded-[28px] bg-night-surface" style={{ aspectRatio }}>
+      <div className="relative mx-auto max-h-[72dvh] w-full overflow-hidden rounded-[28px] bg-night-surface" style={{ aspectRatio }}>
         {moment.mediaType === "VIDEO"
           ? moment.media?.videoUrl && (
               // Trong kho người xem chủ động mở, nên dùng nút điều khiển của trình duyệt thay cho tự phát như feed.
@@ -114,9 +115,11 @@ function MomentDetail({ moment, onMediaError }: { moment: Moment; onMediaError: 
                 onError={onMediaError}
               />
             )}
+        {/* Ảnh đã ghép sẵn lớp trang trí; video vẽ lớp đè lúc phát (ADR 0002). */}
+        {moment.mediaType === "VIDEO" && (
+          <VideoLayers layers={moment.layers} width={moment.width} height={moment.height} />
+        )}
       </div>
-      {/* Ảnh đã ghép sẵn caption; video vẽ lớp trang trí lúc phát (ADR 0002), tạm hiện caption ở đây tới T-135. */}
-      {moment.mediaType === "VIDEO" && moment.caption && <p className="text-[17px] font-semibold">{moment.caption}</p>}
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="font-semibold">{ownerName}</span>
         <span className="text-night-muted">{format(t.archive.postedOn, { date: postedDate(moment.createdAt, locale) })}</span>

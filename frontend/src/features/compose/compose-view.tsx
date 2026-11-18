@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import type { Layer } from "@/features/layers/model";
 import { useI18n } from "@/i18n/I18nProvider";
 import type { CameraFacing, CapturedMedia } from "@/platform";
 import { CameraCapture } from "./camera-capture";
@@ -11,14 +12,16 @@ import { SendPanel } from "./send-panel";
 type Captured = { media: CapturedMedia; url: string };
 
 /**
- * Trang khoảnh khắc mới: chụp hoặc quay (T-133), xem lại, chọn chế độ và người nhận rồi gửi (T-136, T-137).
- * Lớp trang trí (T-135) và tải từ máy (T-134) thêm sau. Khi xem lại thì gỡ khung ngắm để nhả camera.
+ * Trang khoảnh khắc mới: chụp hoặc quay (T-133), trang trí (T-135), chọn chế độ và người nhận rồi gửi (T-136, T-137).
+ * Tải từ máy (T-134) thêm sau. Khi xem lại thì gỡ khung ngắm để nhả camera.
  */
 export function ComposeView() {
   const { t } = useI18n();
   const [facing, setFacing] = useState<CameraFacing>("user");
   const [captured, setCaptured] = useState<Captured | null>(null);
+  const [layers, setLayers] = useState<Layer[]>([]);
   // File chỉ nằm ở máy qua object URL: tạo khi chụp xong, thu hồi khi chụp lại hay rời trang để giải phóng bộ nhớ.
+  // Khi gửi, kho khoảnh khắc đang đăng tự tạo URL xem trước riêng nên URL này luôn do trang soạn thu hồi.
   const capturedRef = useRef<Captured | null>(null);
   useEffect(() => {
     capturedRef.current = captured;
@@ -28,13 +31,10 @@ export function ComposeView() {
   }, []);
 
   const keep = (media: CapturedMedia) => setCaptured({ media, url: URL.createObjectURL(media.blob) });
+  // Chụp lại giữ nguyên các lớp đã thêm, để không phải trang trí lại từ đầu.
   const retake = () => {
     if (captured) URL.revokeObjectURL(captured.url);
     setCaptured(null);
-  };
-  // Đã giao file cho kho khoảnh khắc đang đăng: rời trang không được thu hồi URL nó còn dùng.
-  const handOff = () => {
-    capturedRef.current = null;
   };
 
   return (
@@ -54,8 +54,14 @@ export function ComposeView() {
       <main className="mx-auto w-full max-w-[390px] px-4 pb-8">
         {captured ? (
           <div className="flex flex-col gap-5">
-            <CapturedPreview media={captured.media} url={captured.url} onRetake={retake} />
-            <SendPanel media={captured.media} url={captured.url} onHandedOff={handOff} />
+            <CapturedPreview
+              media={captured.media}
+              url={captured.url}
+              layers={layers}
+              onLayersChange={setLayers}
+              onRetake={retake}
+            />
+            <SendPanel media={captured.media} layers={layers} />
           </div>
         ) : (
           <CameraCapture
