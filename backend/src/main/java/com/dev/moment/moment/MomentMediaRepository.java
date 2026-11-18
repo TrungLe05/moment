@@ -18,4 +18,7 @@ interface MomentMediaRepository extends JpaRepository<MomentMedia, UUID> {
     @Modifying
     @Query("delete from MomentMedia f where f.momentId in :momentIds")
     int deleteAllByMomentIdIn(@Param("momentIds") Collection<UUID> momentIds);
+
+    @Query("select f.objectKey from MomentMedia f, Moment m where m.id = f.momentId and m.ownerId = :ownerId")
+    List<String> findObjectKeysByOwner(@Param("ownerId") UUID ownerId);
 }

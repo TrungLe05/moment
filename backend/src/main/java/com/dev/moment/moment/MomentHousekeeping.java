@@ -81,6 +81,11 @@ public class MomentHousekeeping {
         return total;
     }
 
+    /** US-09: khóa mọi file của các khoảnh khắc một người đăng, để xếp việc xóa khi xóa tài khoản. */
+    public List<String> objectKeysOwnedBy(UUID ownerId) {
+        return media.findObjectKeysByOwner(ownerId);
+    }
+
     private void delete(List<UUID> ids) {
         Map<UUID, List<String>> keys = objectKeys(ids);
         moments.deleteAllByIdIn(ids);
