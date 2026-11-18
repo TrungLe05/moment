@@ -1,3 +1,4 @@
+import { toRequestLayers, type Layer } from "@/features/layers/model";
 import type { CreateMomentRequest } from "@/lib/api/moments";
 import type { CapturedMedia } from "@/platform";
 import type { PendingDraft } from "./pending-moments";
@@ -9,32 +10,37 @@ export type SendSelection = {
 };
 
 /**
- * Dựng bản nháp gửi lên (API mục 3.4). Ảnh cần ORIGINAL và COMPOSED: khi chưa có lớp trang trí (T-135), bản ghép
- * chính là ảnh gốc nên gửi cùng một file. Video chụp bằng camera không quá 5 giây nên không cần điểm cắt.
+ * Dựng bản nháp gửi lên (API mục 3.4, ADR 0002). Ảnh gửi ORIGINAL là ảnh chụp và COMPOSED là bản ghép đã vẽ lớp
+ * (`composed`, xuất ở máy); video gửi một ORIGINAL, lớp vẽ đè lúc phát. Video chụp bằng camera không quá 5 giây nên
+ * không cần điểm cắt.
  */
-export function buildDraft(media: CapturedMedia, previewUrl: string, selection: SendSelection): PendingDraft {
-  const file = { contentType: media.contentType, sizeBytes: media.blob.size };
-  const isPhoto = media.kind === "photo";
+export function buildDraft(
+  media: CapturedMedia,
+  composed: Blob | null,
+  layers: Layer[],
+  selection: SendSelection,
+  previewUrl: string,
+): PendingDraft {
+  const original = { variant: "ORIGINAL" as const, contentType: media.contentType, sizeBytes: media.blob.size };
+  const caption = layers.find((layer) => layer.type === "caption")?.text ?? null;
   return {
     request: {
-      mediaType: isPhoto ? "PHOTO" : "VIDEO",
+      mediaType: media.kind === "photo" ? "PHOTO" : "VIDEO",
       source: "CAMERA",
       mode: selection.mode,
       // BR-12: "tất cả bạn bè" là mặc định; chọn ít nhất một người thì gửi danh sách đã chọn.
       audience: selection.recipientIds.length === 0 ? "ALL" : "SELECTED",
       recipientIds: selection.recipientIds,
-      caption: null,
-      layers: [],
+      // DB mục 5: cột caption chép chữ của lớp caption.
+      caption,
+      layers: toRequestLayers(layers),
       layersVersion: 1,
       trimStartMs: null,
-      files: isPhoto
-        ? [
-            { variant: "ORIGINAL", ...file },
-            { variant: "COMPOSED", ...file },
-          ]
-        : [{ variant: "ORIGINAL", ...file }],
+      files: composed
+        ? [original, { variant: "COMPOSED", contentType: composed.type || "image/jpeg", sizeBytes: composed.size }]
+        : [original],
     },
-    files: isPhoto ? { ORIGINAL: media.blob, COMPOSED: media.blob } : { ORIGINAL: media.blob },
+    files: composed ? { ORIGINAL: media.blob, COMPOSED: composed } : { ORIGINAL: media.blob },
     previewUrl,
   };
 }

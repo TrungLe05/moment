@@ -80,11 +80,16 @@ describe("ArchiveMomentView (US-42)", () => {
     expect(screen.getByRole("link", { name: t.archive.backToArchive })).toHaveAttribute("href", "/archive?tab=received");
   });
 
-  it("plays a video with controls and shows its caption", async () => {
+  // ADR 0002: video không ghép lớp vào file; caption và sticker vẽ đè lúc phát (T-135).
+  it("plays a video with controls and draws its decorations over it", async () => {
     detail.mockResolvedValue(
       kept({
         mediaType: "VIDEO",
         source: "UPLOAD",
+        layers: [
+          { id: "c1", type: "caption", text: "trời hôm nay đẹp quá", x: 0.5, y: 0.86, scale: 1, rotation: 0, style: "pill-dark" },
+          { id: "s1", type: "sticker", text: "vibe", x: 0.5, y: 0.4, scale: 1, rotation: -4, style: "paper" },
+        ],
         media: { displayUrl: null, videoUrl: "https://storage.test/v.mp4", thumbnailUrl: "https://storage.test/t.jpg", urlsExpireAt: "" },
       }),
     );
@@ -96,6 +101,7 @@ describe("ArchiveMomentView (US-42)", () => {
     expect(video).toHaveAttribute("src", "https://storage.test/v.mp4");
     expect(video).toHaveAttribute("controls");
     expect(article).toHaveTextContent("trời hôm nay đẹp quá");
+    expect(article).toHaveTextContent("vibe");
     // BR-09: khoảnh khắc tải lên luôn có nhãn "tải lên".
     expect(article).toHaveTextContent(t.feed.uploaded);
   });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { VideoLayers } from "@/features/layers/layer-view";
 import { useI18n } from "@/i18n/I18nProvider";
 import { format, type Messages } from "@/i18n/messages";
 import type { Moment, ReactionEmoji } from "@/lib/api/moments";
@@ -55,7 +56,10 @@ export function MomentCard({ moment, now, onMediaError, onReact, onKeep, onDelet
         style={{ aspectRatio }}
       >
         {moment.mediaType === "VIDEO" ? (
-          <MomentVideo moment={moment} label={label} onError={() => onMediaError(moment.id)} />
+          <>
+            <MomentVideo moment={moment} label={label} onError={() => onMediaError(moment.id)} />
+            <VideoLayers layers={moment.layers} width={moment.width} height={moment.height} />
+          </>
         ) : (
           moment.media?.displayUrl && (
             // eslint-disable-next-line @next/next/no-img-element -- xuất tĩnh không dùng được next/image tối ưu ảnh.
@@ -109,7 +113,7 @@ export function MomentCard({ moment, now, onMediaError, onReact, onKeep, onDelet
 
 /**
  * US-30: video tự phát không tiếng, lặp lại, bấm để bật tiếng; chỉ phát khi đang hiện trên màn hình.
- * Với video, lớp trang trí vẽ đè lúc phát (ADR 0002); bộ vẽ đủ các lớp làm cùng trình soạn (T-135), tạm hiện caption.
+ * Lớp trang trí vẽ đè lúc phát bằng VideoLayers (ADR 0002, T-135).
  */
 function MomentVideo({ moment, label, onError }: { moment: Moment; label: string; onError: () => void }) {
   const { t } = useI18n();
@@ -149,11 +153,6 @@ function MomentVideo({ moment, label, onError }: { moment: Moment; label: string
         className="h-full w-full object-contain"
         onError={onError}
       />
-      {moment.caption && (
-        <p className="pointer-events-none absolute inset-x-6 bottom-6 mx-auto w-fit max-w-full rounded-[22px] bg-night/60 px-4 py-2 text-center text-[17px] font-semibold text-white backdrop-blur-md">
-          {moment.caption}
-        </p>
-      )}
       <button
         type="button"
         onClick={() => setMuted((current) => !current)}
