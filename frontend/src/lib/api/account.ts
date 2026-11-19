@@ -29,6 +29,10 @@ export const accountApi = {
 
   me: () => apiClient.request<User>("/me", { auth: true }),
 
+  // US-09: tài khoản chỉ có Google gửi không mật khẩu, server kiểm đã đăng nhập lại trong 5 phút (D-026).
+  deleteAccount: (password: string | null) =>
+    apiClient.request<void>("/me", { method: "DELETE", body: password ? { password } : {}, auth: true }),
+
   updateMe: (changes: { username?: string; displayName?: string; locale?: Locale }) =>
     apiClient.request<User>("/me", { method: "PATCH", body: changes, auth: true }),
 

@@ -135,7 +135,7 @@ class AuthController {
     }
 
     // Cookie chỉ gửi kèm các request tới /api/v1/auth, JavaScript không đọc được (danh-sach-api.md mục 2).
-    private static ResponseCookie refreshCookie(String value, Duration maxAge) {
+    static ResponseCookie refreshCookie(String value, Duration maxAge) {
         return ResponseCookie.from(REFRESH_COOKIE, value)
                 .httpOnly(true)
                 .secure(true)

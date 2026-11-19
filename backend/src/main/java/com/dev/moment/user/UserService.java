@@ -83,6 +83,15 @@ public class UserService {
         user.changePasswordHash(null, now());
     }
 
+    /**
+     * US-09: xóa hẳn tài khoản; dữ liệu liên quan xóa theo khóa ngoại. Bắt buộc trong transaction của bên gọi để
+     * việc xóa file tạo cùng lúc (D-046).
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteAccount(UUID userId) {
+        userRepository.deleteUser(userId);
+    }
+
     @Transactional
     public UserAccount updateProfile(UUID userId, UpdateProfileRequest request) {
         User user = requireUser(userId);

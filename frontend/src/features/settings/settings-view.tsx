@@ -10,8 +10,9 @@ import { useI18n } from "@/i18n/I18nProvider";
 import type { Locale } from "@/i18n/messages";
 import { accountApi } from "@/lib/api/account";
 import { useAsyncAction } from "@/lib/use-async-action";
+import { DeleteAccount } from "./delete-account";
 
-/** US-07: đổi ngôn ngữ và lưu vào tài khoản; US-08: đăng xuất thiết bị hiện tại. */
+/** US-07: đổi ngôn ngữ và lưu vào tài khoản; US-08: đăng xuất thiết bị hiện tại; US-09: xóa tài khoản. */
 export function SettingsView() {
   const { t, locale } = useI18n();
   const router = useRouter();
@@ -45,6 +46,7 @@ export function SettingsView() {
       <Button type="button" variant="destructive" onClick={() => void onSignOut()}>
         {t.settings.logout}
       </Button>
+      <DeleteAccount />
       <Link href="/" className="text-sm underline underline-offset-4">
         {t.settings.back}
       </Link>

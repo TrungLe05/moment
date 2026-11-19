@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -26,4 +27,9 @@ interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("select u from User u where u.id in :ids")
     List<User> findAllByIdIn(@Param("ids") Collection<UUID> ids);
+
+    // US-09: khoảnh khắc, người nhận, bạn bè, reaction, token, mã mời xóa theo khóa ngoại ON DELETE CASCADE.
+    @Modifying
+    @Query("delete from User u where u.id = :id")
+    int deleteUser(@Param("id") UUID id);
 }

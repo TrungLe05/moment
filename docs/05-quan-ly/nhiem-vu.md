@@ -20,7 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-118 (xóa tài khoản), T-108 và T-165 (E2E); T-116 chờ Q-023 |
+| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-108 và T-165 (E2E); T-116 chờ Q-023; T-164, T-166 chờ Q-010, Q-021 |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -71,7 +71,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-115 | Quên và đặt lại mật khẩu, thu hồi mọi phiên | Must | Xong | US-05 |
 | T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Chờ | US-06, BR-02, D-025. Username, tên hiển thị, `PROFILE_INCOMPLETE` xong; ảnh đại diện chờ Q-023 (cắt 256×256 ở đâu) |
 | T-117 | Đổi ngôn ngữ giao diện, lưu vào tài khoản | Must | Xong | US-07, D-023; trang cài đặt |
-| T-118 | Xóa tài khoản và toàn bộ dữ liệu | Should | Chưa làm | US-09, D-026 |
+| T-118 | Xóa tài khoản và toàn bộ dữ liệu | Should | Xong | US-09, D-026, D-046; 6 test backend, 4 test giao diện. Chặn xóa tài khoản demo (D-027) |
 | T-119 | Giới hạn tần suất (Bucket4j, trong bộ nhớ) | Must | Xong | API mục 6; giới hạn theo IP dùng địa chỉ kết nối, khi có reverse proxy cần cấu hình forwarded header (T-164) |
 
 ### E2 · Bạn bè

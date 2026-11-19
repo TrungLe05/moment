@@ -1,6 +1,6 @@
 # Danh sách API (MVP)
 
-Phiên bản: bản chốt 1 · Cập nhật: 17/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md)
+Phiên bản: bản chốt 1 · Cập nhật: 18/11/2026 · Dựa trên: [Đặc tả MVP](../01-san-pham/dac-ta-mvp.md), [Thiết kế database](../02-ky-thuat/thiet-ke-database.md)
 
 MVP có 32 endpoint REST dưới tiền tố `/api/v1`, chia 5 nhóm. Không có WebSocket trong MVP (chat và realtime ở giai đoạn 2). File ảnh/video không đi qua API: API cấp presigned URL, client tải thẳng lên object storage.
 
@@ -113,7 +113,7 @@ Chi tiết:
 - `GET /usernames/{username}/availability` → `200 { "available": true }`. Giới hạn tần suất để chống dò username.
 - `POST /me/avatar/upload-url` — body `{ "contentType", "sizeBytes" }` (JPEG/PNG/WebP, tối đa 5 MB) → `200 { "uploadId", "upload": { "method": "PUT", "url", "headers", "expiresAt" } }`. `uploadId` là chuỗi do server ký, chứa userId, object key và hạn dùng 15 phút; không lưu vào database (D-025).
 - `POST /me/avatar/complete` — body `{ "uploadId" }` → `200` user với `avatarUrl` mới. `uploadId` sai chữ ký, hết hạn hoặc của người khác → `TOKEN_INVALID` (400).
-- `DELETE /me` — body `{ "password" }` cho tài khoản có mật khẩu; tài khoản chỉ có Google phải đăng nhập lại trong 5 phút gần nhất, kiểm tra qua claim `auth_time` của access token (D-026) → `204`. Lỗi: `INVALID_CREDENTIALS`, `REAUTH_REQUIRED` (403), `DEMO_ACCOUNT_READONLY`.
+- `DELETE /me` — body `{ "password" }` cho tài khoản có mật khẩu; tài khoản chỉ có Google phải đăng nhập lại trong 5 phút gần nhất, kiểm tra qua claim `auth_time` của access token (D-026) → `204`; client web nhận thêm `Set-Cookie` xóa cookie `moment_rt`. Khoảnh khắc, người nhận, reaction, bạn bè, token xóa theo; file trên storage (khoảnh khắc, ảnh đại diện) xóa bất đồng bộ qua `DELETE_OBJECTS` (D-046). Lỗi: `INVALID_CREDENTIALS` (thiếu hoặc sai mật khẩu), `REAUTH_REQUIRED` (403), `DEMO_ACCOUNT_READONLY`.
 
 ### 3.3 Mời và bạn bè
 
