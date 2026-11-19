@@ -20,7 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-116 (ảnh đại diện), T-162 (PWA), T-163 (tài khoản demo), T-118 (xóa tài khoản) |
+| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-163 (tài khoản demo), T-118 (xóa tài khoản); T-116 chờ Q-023 |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -69,7 +69,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | T-113 | JWT access + refresh token xoay vòng theo family, cookie (web) / body (native), đăng xuất | Must | Xong | US-08, API mục 2 |
 | T-114 | Đăng nhập Google bằng ID token | Must | Xong | US-04, BR-03, D-023; trường hợp email chưa xác thực chờ xác nhận Q-022 |
 | T-115 | Quên và đặt lại mật khẩu, thu hồi mọi phiên | Must | Xong | US-05 |
-| T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Đang làm | US-06, BR-02, D-025. Username, tên hiển thị (API và giao diện), `PROFILE_INCOMPLETE` xong; ảnh đại diện làm sau khi có object storage (T-131) |
+| T-116 | Onboarding: username, tên hiển thị, ảnh đại diện 256×256 | Must | Chờ | US-06, BR-02, D-025. Username, tên hiển thị, `PROFILE_INCOMPLETE` xong; ảnh đại diện chờ Q-023 (cắt 256×256 ở đâu) |
 | T-117 | Đổi ngôn ngữ giao diện, lưu vào tài khoản | Must | Xong | US-07, D-023; trang cài đặt |
 | T-118 | Xóa tài khoản và toàn bộ dữ liệu | Should | Chưa làm | US-09, D-026 |
 | T-119 | Giới hạn tần suất (Bucket4j, trong bộ nhớ) | Must | Xong | API mục 6; giới hạn theo IP dùng địa chỉ kết nối, khi có reverse proxy cần cấu hình forwarded header (T-164) |
@@ -114,7 +114,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | Mã | Việc | Ưu tiên | Trạng thái | Ghi chú |
 | --- | --- | --- | --- | --- |
 | T-161 | Job định kỳ: hết hạn, dọn nháp, dọn token, dọn hàng đợi | Must | Xong | DB mục 9, BR-14, D-029, D-039; 15 test (12 với PostgreSQL thật, 3 kiểm tra lịch chỉ bật ở API) |
-| T-162 | PWA: manifest, icon, service worker chỉ cache giao diện tĩnh | Must | Chưa làm | US-50 |
+| T-162 | PWA: manifest, icon, service worker chỉ cache giao diện tĩnh | Must | Xong | US-50, D-044; 6 test (manifest, phân loại request của service worker) |
 | T-163 | Script seed tài khoản demo | Must | Chưa làm | US-51, D-027 |
 | T-164 | Docker Compose production, Cloudflare R2, backup PostgreSQL hằng ngày | Must | Chưa làm | US-52; phục vụ frontend và TLS chờ Q-021; bucket R2 cần luật CORS cho origin frontend như bucket dev (D-041) |
 | T-165 | E2E luồng đăng ký → kết bạn → đăng → reaction | Must | Chưa làm | Đặc tả mục 5 |
