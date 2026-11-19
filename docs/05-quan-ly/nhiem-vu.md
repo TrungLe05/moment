@@ -20,7 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-163 (tài khoản demo), T-118 (xóa tài khoản); T-116 chờ Q-023 |
+| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-118 (xóa tài khoản), T-108 và T-165 (E2E); T-116 chờ Q-023 |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -115,7 +115,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | --- | --- | --- | --- | --- |
 | T-161 | Job định kỳ: hết hạn, dọn nháp, dọn token, dọn hàng đợi | Must | Xong | DB mục 9, BR-14, D-029, D-039; 15 test (12 với PostgreSQL thật, 3 kiểm tra lịch chỉ bật ở API) |
 | T-162 | PWA: manifest, icon, service worker chỉ cache giao diện tĩnh | Must | Xong | US-50, D-044; 6 test (manifest, phân loại request của service worker) |
-| T-163 | Script seed tài khoản demo | Must | Chưa làm | US-51, D-027 |
+| T-163 | Script seed tài khoản demo | Must | Xong | US-51, D-027, D-045; 6 test backend, 2 test giao diện. Bật bằng `MOMENT_DEMO_ENABLED`; triển khai thật cần đặt biến ở T-164 |
 | T-164 | Docker Compose production, Cloudflare R2, backup PostgreSQL hằng ngày | Must | Chưa làm | US-52; phục vụ frontend và TLS chờ Q-021; bucket R2 cần luật CORS cho origin frontend như bucket dev (D-041) |
 | T-165 | E2E luồng đăng ký → kết bạn → đăng → reaction | Must | Chưa làm | Đặc tả mục 5 |
 | T-166 | Triển khai lên VPS | Must | Chưa làm | Chặn bởi T-012 |

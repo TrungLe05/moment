@@ -8,16 +8,16 @@ Dự án đang ở giai đoạn 1 (MVP); giai đoạn 0 còn font, glassmorphism
 
 Đặc tả, database, API đã lên bản chốt 1 (T-014). E1 tài khoản đã có API và giao diện (đăng ký, xác thực email, đăng nhập email/Google, phiên xoay vòng, quên mật khẩu, chọn username, đổi ngôn ngữ, đăng xuất); còn ảnh đại diện (T-116) và xóa tài khoản (T-118). Mọi việc đã xong đều đã merge vào `develop` qua PR, CI xanh. Còn mở: tên miền, VPS (Q-010), email production (Q-011), cách phục vụ frontend ở production (Q-021); cả ba chỉ chặn bước triển khai.
 
-Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135, PR #19), tải ảnh, video từ máy có chọn đoạn 5 giây (T-134, PR #20): epic E3 soạn và đăng đã đủ. PWA cài được như app (T-162). Ảnh đại diện (T-116) chờ Q-023.
+Đã có tạo khoảnh khắc (T-131), media worker xử lý ảnh, video bằng ffmpeg (T-132, profile `worker`), quyền xem và chi tiết khoảnh khắc (T-141), feed 24 giờ có giao diện tối theo bản mẫu (T-142), reaction (T-143), lưu giữ và xóa (T-144), kho lưu giữ hai tab và chi tiết (T-151, PR #14 và #15 đã merge), job định kỳ hết hạn và dọn dẹp (T-161, PR #16 đã merge), chụp ảnh và quay video (T-133, PR #17), chọn chế độ, người nhận và đăng có ảnh mờ (T-136, T-137, PR #18), trình soạn caption, sticker, biểu ngữ và bản ghép (T-135, PR #19), tải ảnh, video từ máy có chọn đoạn 5 giây (T-134, PR #20): epic E3 soạn và đăng đã đủ. PWA cài được như app (T-162, PR #21), tài khoản demo tự dựng lại mỗi ngày (T-163). Ảnh đại diện (T-116) chờ Q-023.
 
-**Việc kế tiếp:** tài khoản demo (T-163), xóa tài khoản (T-118), E2E (T-108, T-165); T-116 sau khi chốt Q-023.
+**Việc kế tiếp:** xóa tài khoản (T-118), E2E (T-108, T-165); T-116 sau khi chốt Q-023; triển khai (T-164) cần đặt biến demo.
 
 ## Theo giai đoạn
 
 | Giai đoạn | Trạng thái | Việc xong / tổng | Ghi chú |
 | --- | --- | --- | --- |
 | 0 · Chuẩn bị | Đang làm | 12 / 16 | Còn font (T-010), glassmorphism (T-011), VPS (T-012), ước lượng (T-013) |
-| 1 · MVP | Đang làm | 33 / 40 | Nền tảng, E1, E2 gần xong; E3 soạn và đăng, E4 xem và tương tác, E5 kho, job định kỳ, PWA xong (T-131 → T-137, T-141 → T-144, T-151, T-161, T-162); T-116 chờ Q-023; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
+| 1 · MVP | Đang làm | 34 / 40 | Nền tảng, E1, E2 gần xong; E3 soạn và đăng, E4 xem và tương tác, E5 kho, job định kỳ, PWA, tài khoản demo xong (T-131 → T-137, T-141 → T-144, T-151, T-161 → T-163); T-116 chờ Q-023; T-116 còn ảnh đại diện, T-118 chưa làm; T-110 chờ release v1. Chưa ước lượng thời gian (T-013) |
 | 2 → 8 | Chưa bắt đầu | — | Chia nhỏ khi tới giai đoạn |
 
 Cách đếm: số việc trạng thái "Xong" trên tổng số việc không ở trạng thái "Bỏ" trong [nhiệm vụ](nhiem-vu.md). Cập nhật bảng này mỗi khi đổi trạng thái việc.
@@ -25,6 +25,14 @@ Cách đếm: số việc trạng thái "Xong" trên tổng số việc không �
 ## Nhật ký phiên làm việc
 
 Mới nhất ở trên. Mỗi phiên ghi: đã làm gì, quyết định gì, còn dở gì, việc kế tiếp. Ghi trung thực: việc chưa kiểm chứng thì nói chưa kiểm chứng.
+
+### 18/11/2026 · T-163 tài khoản demo
+
+- Gói backend `demo`: `DemoSeeder.reseed` xóa mọi người dùng `is_demo` (dữ liệu đi theo cascade, file cũ xóa qua `DELETE_OBJECTS`) rồi dựng lại tài khoản `demo`, 3 bạn demo, 5 khoảnh khắc ảnh qua worker, 3 reaction; `DemoScheduler` chạy lúc khởi động và 4 giờ sáng mỗi ngày ở tiến trình API khi bật `MOMENT_DEMO_ENABLED`, thiếu email hay mật khẩu thì API không khởi động. Ảnh mẫu minh họa phẳng vẽ bằng ffmpeg. Chặn đặt lại mật khẩu cho demo đã có từ trước (có test). Chốt D-045 (ghi thẳng SQL như dữ liệu migration là ngoại lệ có chủ đích).
+- Trang đăng nhập hiện khung "Tài khoản demo" với email, mật khẩu và nút đăng nhập nhanh khi bản build có `NEXT_PUBLIC_DEMO_EMAIL`, `NEXT_PUBLIC_DEMO_PASSWORD`; không có thì ẩn. Thêm khóa cấu hình vào `application.yml` và mô tả trong `.env.example`.
+- Test trước: 6 test backend (dựng dữ liệu, dựng lại không đụng người dùng thật và xếp xóa file cũ, lịch chỉ bật ở API khi có cấu hình), 2 test giao diện. 189 test backend, 126 test frontend pass; lint, kiểm tra kiểu đều qua.
+- Chạy thật (Postgres 5433, mật khẩu demo sinh ngẫu nhiên): API khởi động ghi "Đã dựng lại dữ liệu demo: 4 người dùng, 5 khoảnh khắc", worker xử lý xong; trang đăng nhập hiện khung demo, bấm nút là vào feed với 3 khoảnh khắc trong 24 giờ, "3/15 bạn", khoảnh khắc của mình có 1 lượt thả cảm xúc; kho "Của tôi" 1, "Được gửi" 1.
+- Còn dở: chặn xóa tài khoản demo làm cùng T-118; username `demo` mà đã có người thật đăng ký thì seed báo lỗi trong log (API vẫn chạy).
 
 ### 18/11/2026 · T-162 PWA, Q-023 ảnh đại diện
 
