@@ -20,7 +20,7 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 
 | Mã | Việc | Ghi chú |
 | --- | --- | --- |
-| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-134 (tải từ máy), T-116 (ảnh đại diện), T-162 (PWA) |
+| — | Chưa có việc nào đang làm | Việc kế tiếp đề xuất: T-116 (ảnh đại diện), T-162 (PWA), T-163 (tài khoản demo), T-118 (xóa tài khoản) |
 
 ## Giai đoạn 0 · Chuẩn bị
 
@@ -88,8 +88,8 @@ File này là danh sách việc duy nhất của dự án. Mỗi việc có mã 
 | --- | --- | --- | --- | --- |
 | T-131 | API tạo khoảnh khắc, cấp presigned URL, `complete`, `retry` | Must | Xong | API mục 3.4, 5; object storage qua AWS SDK v2, test với RustFS thật |
 | T-132 | Media worker: lấy việc từ `media_jobs`, ffmpeg cho ảnh và video, thumbnail, thử lại 3 lần | Must | Xong | ADR 0003, DB mục 6, D-033; 22 test với ffmpeg, PostgreSQL, RustFS thật; có cả việc `DELETE_OBJECTS` |
-| T-133 | Chụp ảnh và quay video 5 giây bằng camera | Must | Xong | US-20, US-21, D-040; 12 test giao diện. Lối tải từ máy khi không có camera ở T-134; bước xem lại dừng ở nút Chụp lại cho tới T-135 → T-137 |
-| T-134 | Tải ảnh/video từ máy, chọn đoạn 5 giây, nhãn "tải lên" | Must | Chưa làm | US-22, BR-09, BR-10 |
+| T-133 | Chụp ảnh và quay video 5 giây bằng camera | Must | Xong | US-20, US-21, D-040; 12 test giao diện. Lối tải từ máy khi không có camera thêm ở T-134 |
+| T-134 | Tải ảnh/video từ máy, chọn đoạn 5 giây, nhãn "tải lên" | Must | Xong | US-22, BR-09, BR-10, D-043; 4 test luật file, 8 test giao diện. Có cả khi camera bị từ chối (US-20) |
 | T-135 | Trình soạn lớp trang trí: caption, sticker, biểu ngữ, đếm theo grapheme | Must | Xong | US-23, US-24, BR-11, ADR 0002, D-042; 9 test mô hình và dàn chữ, 8 test trình soạn. Video ở feed và kho vẽ đủ lớp đè lúc phát |
 | T-136 | Xuất bản ghép từ canvas, tải lên với ảnh xem trước làm mờ (không thanh tiến trình), thử lại khi mất mạng | Must | Xong | US-28 (D-005), D-041, D-042. Tải thẳng lên storage, thẻ mờ ở đầu feed, thử lại hay hủy khi lỗi tải lên hoặc xử lý (15 test); bản ghép xuất từ canvas ở T-135 (ảnh chưa có lớp thì gửi ảnh gốc làm `COMPOSED`) |
 | T-137 | Chọn chế độ chia sẻ/lưu giữ và người nhận | Must | Xong | US-26, US-27, BR-12; 6 test giao diện. Chưa có bạn thì không gửi được, có lối sang trang mời |
